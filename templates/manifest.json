@@ -1,0 +1,23 @@
+{
+  "name": "Aurora V.75",
+  "short_name": "Aurora V.75",
+  "description": "Teaching Staff Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0c0c0e",
+  "theme_color": "#e50012",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
