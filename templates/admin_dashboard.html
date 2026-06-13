@@ -1,231 +1,850 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | Staff Management</title>
     <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-        
         :root {
-            --bg-body: radial-gradient(circle at 50% 50%, #121214 0%, #080809 100%);
-            --bg-glow: radial-gradient(circle, rgba(229, 0, 18, 0.04) 0%, transparent 70%);
-            --bg-card: #ffffff;
-            --text-primary: #0d0d0d;
-            --text-secondary: #666666;
-            --bg-input: #f5f5f7;
-            --text-input: #1d1d1f;
-            --border-card: rgba(255, 255, 255, 0.1);
-            --toggle-bg: #f5f5f7;
-            --toggle-color: #1d1d1f;
+            /* Spacing System */
+            --spacing-xxs: 0.25rem; /* 4px */
+            --spacing-xs: 0.5rem;   /* 8px */
+            --spacing-sm: 0.75rem;  /* 12px */
+            --spacing-md: 1rem;     /* 16px */
+            --spacing-lg: 1.5rem;   /* 24px */
+            --spacing-xl: 2rem;     /* 32px */
+            --spacing-xxl: 3rem;    /* 48px */
+
+            /* Theme Colors */
+            --primary: #FF6B00;
+            --primary-hover: #FF8533;
+            --primary-glow: rgba(255, 107, 0, 0.15);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --btn-height: 40px;
+            --container-max-width: 1400px;
         }
 
         [data-theme="dark"] {
-            --bg-body: radial-gradient(circle at 50% 50%, #0c0c0e 0%, #050506 100%);
-            --bg-glow: radial-gradient(circle, rgba(229, 0, 18, 0.05) 0%, transparent 70%);
-            --bg-card: #121214;
-            --text-primary: #ffffff;
-            --text-secondary: #86868b;
-            --bg-input: #1c1c1e;
-            --text-input: #f5f5f7;
-            --border-card: rgba(255, 255, 255, 0.05);
-            --toggle-bg: #1c1c1e;
-            --toggle-color: #ffffff;
+            --bg-body: #0F172A;
+            --bg-card: rgba(30, 41, 59, 0.75);
+            --bg-input: #1E293B;
+            --bg-table-row: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border-card: rgba(255, 255, 255, 0.08);
+            --sidebar-bg: #0F172A;
+            --sidebar-border: rgba(255, 255, 255, 0.06);
+            --shadow-main: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --glass-blur: blur(16px);
         }
 
         [data-theme="light"] {
-            --bg-body: #f5f5f7;
-            --bg-glow: radial-gradient(circle, rgba(229, 0, 18, 0.03) 0%, transparent 70%);
-            --bg-card: #ffffff;
-            --text-primary: #1d1d1f;
-            --text-secondary: #666666;
-            --bg-input: #e8e8ed;
-            --text-input: #1d1d1f;
-            --border-card: rgba(0, 0, 0, 0.08);
-            --toggle-bg: #ffffff;
-            --toggle-color: #1d1d1f;
+            --bg-body: #F8FAFC;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-input: #F1F5F9;
+            --bg-table-row: #FFFFFF;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border-card: rgba(15, 23, 42, 0.08);
+            --sidebar-bg: #FFFFFF;
+            --sidebar-border: rgba(15, 23, 42, 0.06);
+            --shadow-main: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            --glass-blur: blur(12px);
         }
 
-        body { min-height: 100vh; background: var(--bg-body); color: var(--text-primary); padding: 2rem; display: flex; justify-content: center; align-items: flex-start; position: relative; overflow-x: hidden; transition: background 0.3s; }
-        body::before { content: ''; position: fixed; width: 600px; height: 600px; background: var(--bg-glow); top: 20%; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 0; }
-        .admin-container { width: 100%; max-width: 1200px; position: relative; z-index: 2; animation: stageEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; padding: 1.5rem 2rem; background: var(--bg-card); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); border: 1px solid var(--border-card); transition: background 0.3s, border-color 0.3s; }
-        .title-area h1 { font-size: 1.6rem; color: var(--text-primary); font-weight: 700; letter-spacing: -0.5px; transition: color 0.3s; }
-        .title-area p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem; font-weight: 500; transition: color 0.3s; }
-        .glass-card { background: var(--bg-card); border-radius: 24px; padding: 2.2rem; margin-bottom: 2rem; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); border: 1px solid var(--border-card); transition: background 0.3s, border-color 0.3s; }
-        h2 { color: var(--text-primary); font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; transition: color 0.3s; }
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; }
-        input { width: 100%; padding: 0.85rem 1.1rem; background: var(--bg-input); border: 1px solid transparent; border-radius: 12px; color: var(--text-input); font-size: 0.95rem; outline: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        input:focus { background: var(--bg-card); border-color: #e50012; box-shadow: 0 0 0 4px rgba(229, 0, 18, 0.08); }
-        .btn-submit { background: linear-gradient(95deg, #e50012, #ff5100); border: none; padding: 0.9rem 1.8rem; border-radius: 12px; font-weight: 600; font-size: 0.95rem; color: #ffffff; cursor: pointer; box-shadow: 0 4px 15px rgba(229, 0, 18, 0.25); transition: all 0.2s; }
-        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229, 0, 18, 0.35); }
-        .logout-btn { background: var(--toggle-bg); color: var(--toggle-color); border: 1px solid var(--border-card); padding: 0.6rem 1.2rem; border-radius: 2rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; }
-        .logout-btn:hover { background: rgba(229, 0, 18, 0.08); color: #e50012; }
-        .staff-table { width: 100%; border-collapse: separate; border-spacing: 0 0.5rem; margin-top: 1rem; }
-        .staff-table th { padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid var(--bg-input); transition: color 0.3s; }
-        .staff-table td { padding: 1.2rem 1rem; background: var(--bg-input); color: var(--text-input); font-size: 0.95rem; transition: background 0.3s, color 0.3s; }
-        .staff-table tr td:first-child { border-radius: 12px 0 0 12px; }
-        .staff-table tr td:last-child { border-radius: 0 12px 12px 0; }
-        code { background: var(--bg-card); padding: 0.3rem 0.6rem; border-radius: 6px; color: var(--text-primary); font-family: monospace; font-size: 0.85rem; border: 1px solid var(--border-card); font-weight: 600; transition: background 0.3s, color 0.3s, border-color 0.3s; }
-        .action-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .open-staff-btn { background: var(--bg-card); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; padding: 0.4rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.25s; }
-        .open-staff-btn:hover { background: #10b981; color: #ffffff; }
-        .action-btn { background: var(--bg-card); border: 1px solid rgba(229, 0, 18, 0.2); color: #e50012; padding: 0.4rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.25s; }
-        .action-btn:hover { background: #e50012; color: #ffffff; }
-        .success-message { background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); color: #065f46; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5; white-space: pre-line; }
-        .error-message { background: rgba(229, 0, 18, 0.06); border: 1px solid rgba(229, 0, 18, 0.2); color: #e50012; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.9rem; text-align: center; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-        .stats-card { background: var(--bg-input); padding: 1.5rem; border-radius: 16px; transition: background 0.3s; }
-        .stats-card h3 { color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; }
-        .stats-number { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); transition: color 0.3s; }
-        .password-info { background: rgba(255, 81, 0, 0.04); border-left: 4px solid #ff5100; padding: 1rem; border-radius: 0 12px 12px 0; margin-top: 1.2rem; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; transition: color 0.3s; }
-        .staff-log-section { background: var(--bg-input); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; transition: background 0.3s; }
-        .badge-present { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.2rem 0.6rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .credit-footer { text-align: center; margin-top: 2rem; font-size: 0.8rem; color: var(--text-secondary); transition: color 0.3s; }
-        .credit-footer span { color: #e50012; font-weight: 600; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.2rem; }
-        .loading-spinner { width: 50px; height: 50px; border: 3px solid #f2f2f7; border-top-color: #e50012; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes stageEntrance { from { opacity: 0; transform: scale(0.98) translateY(15px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
 
-        /* Install App Modal Styles */
+        body {
+            min-height: 100vh;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-card);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Layout Structure */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Fixed Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: var(--spacing-lg) var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--sidebar-border);
+        }
+
+        /* Rotating glowing logo wrapper */
+        .logo-wrapper {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-orbit-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(255, 107, 0, 0.4);
+            animation: logoOrbit 15s linear infinite;
+        }
+
+        .logo-img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            padding: 2px;
+            background: #ffffff;
+            z-index: 2;
+        }
+
+        .brand-text h2 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-xs);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xxs);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .sidebar-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-input);
+            transform: translateX(2px);
+        }
+
+        .sidebar-link.active {
+            color: #ffffff;
+            background: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .sidebar-footer {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--sidebar-border);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .sidebar-footer span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Main Content wrapper */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Sticky Top Header */
+        .top-header {
+            height: var(--header-height);
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-xl);
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+        }
+
+        .sidebar-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Header Command Search input */
+        .header-search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-secondary);
+            pointer-events: none;
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+        }
+
+        #globalHeaderSearch {
+            width: 100%;
+            height: var(--btn-height);
+            padding: 0 var(--spacing-md) 0 38px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        #globalHeaderSearch:focus {
+            border-color: var(--primary);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        /* Header buttons */
+        .header-btn {
+            background: var(--toggle-bg);
+            border: 1px solid var(--toggle-border);
+            color: var(--toggle-color);
+            height: var(--btn-height);
+            padding: 0 var(--spacing-md);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .header-btn:hover {
+            background: var(--border-card);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .header-btn.pc-btn {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .header-btn.phone-btn {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .header-btn.theme-btn {
+            width: 40px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .header-btn.logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Main Content Wrapper */
+        .content-area {
+            flex: 1;
+            padding: var(--spacing-xl) var(--spacing-lg);
+            overflow-y: auto;
+        }
+
+        .content-container {
+            width: 100%;
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Glassmorphic cards */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 16px;
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border-card);
+            box-shadow: var(--shadow-main);
+        }
+
+        h2 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        /* Skeletons */
+        .skeleton-row td .skeleton-bar {
+            height: 16px;
+            background: linear-gradient(90deg, var(--bg-input) 25%, var(--border-card) 50%, var(--bg-input) 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            animation: skeletonPulse 1.5s infinite linear;
+        }
+
+        .skeleton-card .skeleton-bar {
+            height: 16px;
+            background: linear-gradient(90deg, var(--bg-input) 25%, var(--border-card) 50%, var(--bg-input) 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            animation: skeletonPulse 1.5s infinite linear;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        @keyframes skeletonPulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Interactive Charts panel */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 260px;
+            width: 100%;
+        }
+
+        /* Form widgets */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            height: var(--btn-height);
+            padding: 0 var(--spacing-md);
+            background: var(--bg-input);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            background: var(--bg-card);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            border: none;
+            height: var(--btn-height);
+            padding: 0 var(--spacing-lg);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 107, 0, 0.35);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Stats Cards redone */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .stats-card {
+            background: var(--bg-input);
+            padding: var(--spacing-lg);
+            border-radius: 12px;
+            border: 1px solid var(--border-card);
+            transition: transform 0.2s ease, background 0.3s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: var(--spacing-xs);
+            letter-spacing: 0.5px;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        /* Staff Table legibility upgrade (Opaque overlay, NO backdrop-filter blur) */
+        .staff-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 var(--spacing-xxs);
+            margin-top: var(--spacing-xs);
+        }
+
+        .staff-table th {
+            padding: var(--spacing-sm) var(--spacing-md);
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--bg-input);
+        }
+
+        .staff-table td {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-table-row);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-card);
+            transition: background 0.3s;
+        }
+
+        .staff-table tr td:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .staff-table tr td:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        code {
+            background: var(--bg-body);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--primary);
+            font-family: monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-card);
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .action-group {
+            display: flex;
+            gap: var(--spacing-xxs);
+            flex-wrap: wrap;
+        }
+
+        .open-staff-btn {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .open-staff-btn:hover {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .action-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        /* Messages */
+        .success-message {
+            background: var(--success-bg);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: var(--spacing-md);
+            border-radius: 8px;
+            margin-bottom: var(--spacing-md);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .error-message {
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            padding: var(--spacing-md);
+            border-radius: 8px;
+            margin-bottom: var(--spacing-md);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .password-info {
+            background: rgba(255, 107, 0, 0.04);
+            border-left: 4px solid var(--primary);
+            padding: var(--spacing-md);
+            border-radius: 0 8px 8px 0;
+            margin-top: var(--spacing-md);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .staff-log-section {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .badge-present {
+            background: var(--success-bg);
+            color: var(--success);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .credit-footer {
+            text-align: center;
+            margin-top: var(--spacing-xl);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .credit-footer span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: var(--glass-blur);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            color: var(--text-primary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--bg-input);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Modal Redesign */
         .install-modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(10, 10, 12, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
             z-index: 10000;
             justify-content: center;
             align-items: center;
-            padding: 1.5rem;
-            animation: fadeIn 0.4s ease;
+            padding: var(--spacing-lg);
+            animation: fadeIn 0.3s ease;
         }
+
         .install-card {
-            background: rgba(20, 20, 25, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
             width: 100%;
-            max-width: 450px;
-            padding: 2.2rem;
-            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.8);
-            color: #ffffff;
+            max-width: 480px;
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-main);
+            color: var(--text-primary);
             position: relative;
             transform: scale(0.95);
-            animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes scaleUp {
-            to { transform: scale(1); }
-        }
+
         .install-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
         }
+
         .install-logo {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            padding: 4px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            padding: 2px;
             background: #ffffff;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-card);
         }
+
         .install-title h3 {
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.3px;
+            color: var(--text-primary);
         }
+
         .install-title p {
-            font-size: 0.85rem;
-            color: #86868b;
-            margin-top: 0.1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
+
         .install-body {
-            margin-bottom: 2rem;
+            margin-bottom: var(--spacing-lg);
         }
+
         .install-instructions {
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
+            gap: var(--spacing-sm);
         }
+
         .instruction-step {
             display: flex;
-            gap: 1rem;
+            gap: var(--spacing-sm);
             align-items: flex-start;
         }
+
         .step-num {
-            background: linear-gradient(135deg, #e50012, #ff5100);
+            background: var(--primary);
             color: #ffffff;
             font-weight: 700;
-            font-size: 0.85rem;
-            width: 24px;
-            height: 24px;
+            font-size: 0.8rem;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            margin-top: 2px;
         }
+
         .step-text {
-            font-size: 0.95rem;
-            color: #f5f5f7;
+            font-size: 0.85rem;
+            color: var(--text-primary);
             line-height: 1.5;
             text-align: left;
         }
-        .step-text strong {
-            color: #ffffff;
-        }
-        .step-text svg {
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0 4px;
-            fill: currentColor;
-            color: #e50012;
-        }
-        .install-footer {
-            display: flex;
-            justify-content: flex-end;
-        }
+
         .btn-close-install {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            padding: 0.75rem 1.8rem;
-            border-radius: 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-card);
+            color: var(--text-primary);
+            height: var(--btn-height);
+            padding: 0 var(--spacing-lg);
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.2s;
         }
+
         .btn-close-install:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: var(--border-card);
         }
 
+        /* Animations definition */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes logoOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUp { to { transform: scale(1); } }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
         /* Responsive UI/UX Media Queries */
-        @media (max-width: 1024px) {
-            body { padding: 1.5rem 1rem; }
-            .glass-card { padding: 1.8rem; }
+        @media (max-width: 900px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active-sidebar {
+                transform: translateX(0);
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            body { padding: 1rem 0.5rem; }
-            .admin-header { padding: 1rem 1.2rem; }
-            .title-area h1 { font-size: 1.4rem; }
-            .glass-card { padding: 1.2rem; border-radius: 20px; }
+            .top-header {
+                padding: 0 var(--spacing-md);
+            }
+            .content-area {
+                padding: var(--spacing-lg) var(--spacing-sm);
+            }
             
-            /* Responsive Registered Staff Table */
+            /* Responsive Staff Table to Cards */
             .staff-table, .staff-table thead, .staff-table tbody, .staff-table th, .staff-table td, .staff-table tr {
                 display: block;
             }
@@ -233,24 +852,24 @@
                 display: none;
             }
             .staff-table tr {
-                background: var(--bg-input);
-                border-radius: 16px;
-                padding: 1rem;
-                margin-bottom: 1rem;
+                background: var(--bg-table-row);
+                border-radius: 12px;
+                padding: var(--spacing-md);
+                margin-bottom: var(--spacing-md);
                 border: 1px solid var(--border-card);
             }
             .staff-table td {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0.6rem 0;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-                font-size: 0.9rem;
+                padding: var(--spacing-xs) 0;
+                border-bottom: 1px solid var(--border-card);
+                font-size: 0.85rem;
                 text-align: right;
             }
             .staff-table td:last-child {
                 border-bottom: none;
-                padding-top: 1rem;
+                padding-top: var(--spacing-md);
                 justify-content: flex-end;
             }
             .staff-table td::before {
@@ -259,16 +878,15 @@
                 color: var(--text-secondary);
                 font-size: 0.75rem;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
                 text-align: left;
-                margin-right: 1rem;
+                margin-right: var(--spacing-md);
             }
             .action-group {
                 width: 100%;
                 justify-content: flex-end;
             }
 
-            /* Responsive Logs Table inside .staff-log-section */
+            /* Responsive Logs Table */
             .staff-log-section table,
             .staff-log-section thead,
             .staff-log-section tbody,
@@ -283,18 +901,17 @@
             .staff-log-section tr {
                 background: var(--bg-card);
                 border-radius: 12px;
-                padding: 0.8rem;
-                margin-bottom: 0.8rem;
+                padding: var(--spacing-sm);
+                margin-bottom: var(--spacing-sm);
                 border: 1px solid var(--border-card);
             }
             .staff-log-section td {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0.5rem 0 !important;
+                padding: var(--spacing-xs) 0 !important;
                 border-bottom: 1px solid var(--border-card) !important;
                 font-size: 0.85rem;
-                text-align: right !important;
             }
             .staff-log-section td:last-child {
                 border-bottom: none !important;
@@ -307,252 +924,281 @@
                 text-transform: uppercase;
                 text-align: left;
             }
+            .header-search-container {
+                display: none; /* Hide global search in small screens or shrink */
+            }
         }
 
-        @media (max-width: 480px) {
-            .admin-header {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-            .logout-btn {
-                width: 100%;
-                text-align: center;
-                padding: 0.8rem;
-            }
-            .stats-card {
-                padding: 1.2rem;
-            }
-            .stats-number {
-                font-size: 1.8rem;
-            }
+        /* Welcome Overlay Styling */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .welcome-overlay-content {
+            text-align: center;
+            animation: welcomeContentReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .welcome-logo-wrapper {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .welcome-logo-orbit {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 107, 0, 0.5);
+            animation: logoOrbit 20s linear infinite;
+        }
+        .welcome-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            padding: 3px;
+            background: white;
+            z-index: 2;
+        }
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .welcome-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        @keyframes welcomeContentReveal {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes logoOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-<!-- Notification Permission Banner -->
-<div id="notificationPermissionBanner" style="display: none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; text-align: center; padding: 0.8rem 1.5rem; font-weight: 500; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99998; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.1); align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span style="font-size: 1.1rem;">🔔</span>
-        <span id="notificationPermissionText"><strong>Aurora V.75</strong> requests permission to show desktop notifications for system alerts.</span>
+    <!-- Welcome Overlay Animation -->
+    <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
+        <div class="welcome-overlay-content">
+            <div class="welcome-logo-wrapper">
+                <div class="welcome-logo-orbit"></div>
+                <img src="/logo.png" class="welcome-logo" alt="Aurora Logo">
+            </div>
+            <h1 class="welcome-title">Welcome back to Aurora</h1>
+            <p class="welcome-subtitle">Hello, Admin! Preparing your dashboard...</p>
+        </div>
     </div>
-    <div style="display: flex; gap: 0.8rem; align-items: center;">
-        <button id="enableNotificationsBtn" 
-                onmouseover="this.style.transform='scale(1.04)';" 
-                onmouseout="this.style.transform='scale(1)';" 
-                style="background: linear-gradient(135deg, #e50012, #b3000e); color: white; border: none; padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(229, 0, 18, 0.25); outline: none;">
-            Enable
-        </button>
-        <button id="dismissNotificationsBannerBtn" 
-                onmouseover="this.style.background='rgba(255,255,255,0.15)';" 
-                onmouseout="this.style.background='rgba(255,255,255,0.08)';" 
-                style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; outline: none;">
-            Later
-        </button>
+
+    <!-- Notification Permission Banner -->
+    <div id="notificationPermissionBanner" style="display: none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; text-align: center; padding: 0.8rem 1.5rem; font-weight: 500; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99998; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.1); align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; transition: all 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.1rem;">🔔</span>
+            <span id="notificationPermissionText"><strong>Aurora V.75</strong> requests permission to show desktop notifications for system alerts.</span>
+        </div>
+        <div style="display: flex; gap: 0.8rem; align-items: center;">
+            <button id="enableNotificationsBtn" 
+                    onmouseover="this.style.transform='scale(1.04)';" 
+                    onmouseout="this.style.transform='scale(1)';" 
+                    style="background: linear-gradient(135deg, #FF6B00, #E05E00); color: white; border: none; padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(255, 107, 0, 0.25); outline: none;">
+                Enable
+            </button>
+            <button id="dismissNotificationsBannerBtn" 
+                    onmouseover="this.style.background='rgba(255,255,255,0.15)';" 
+                    onmouseout="this.style.background='rgba(255,255,255,0.08)';" 
+                    style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; outline: none;">
+                Later
+            </button>
+        </div>
     </div>
-</div>
-<script>
-    (function() {
-        function adjustBannerPosition() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner || banner.style.display === 'none') return;
-            const dbBanner = document.getElementById('dbWarningBanner');
-            if (dbBanner && dbBanner.style.display !== 'none') {
-                banner.style.top = dbBanner.offsetHeight + 'px';
-                document.body.style.marginTop = (dbBanner.offsetHeight + banner.offsetHeight) + 'px';
-            } else {
-                banner.style.top = '0px';
-                document.body.style.marginTop = banner.offsetHeight + 'px';
-            }
-        }
-
-        function showBanner() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner) return;
-            banner.style.display = 'flex';
-            adjustBannerPosition();
-            window.addEventListener('resize', adjustBannerPosition);
-            
-            const interval = setInterval(adjustBannerPosition, 1000);
-            banner.dataset.intervalId = interval;
-        }
-
-        function hideBanner() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner) return;
-            banner.style.display = 'none';
-            document.body.style.marginTop = '0px';
-            window.removeEventListener('resize', adjustBannerPosition);
-            if (banner.dataset.intervalId) {
-                clearInterval(parseInt(banner.dataset.intervalId));
-            }
-            const dbBanner = document.getElementById('dbWarningBanner');
-            if (dbBanner && dbBanner.style.display !== 'none') {
-                document.body.style.marginTop = dbBanner.offsetHeight + 'px';
-            }
-        }
-
-        function updateBannerForDeniedState() {
-            const bannerText = document.getElementById('notificationPermissionText');
-            const enableBtn = document.getElementById('enableNotificationsBtn');
-            const dismissBtn = document.getElementById('dismissNotificationsBannerBtn');
-            if (bannerText) {
-                bannerText.innerHTML = '<strong>Notifications Blocked:</strong> Click the <strong>Lock/Settings icon 🔒</strong> next to the URL in your browser address bar and set <strong>Notifications</strong> to <strong>Allow</strong>.';
-            }
-            if (enableBtn) {
-                enableBtn.style.display = 'none';
-            }
-            if (dismissBtn) {
-                dismissBtn.innerText = 'Got it';
-            }
-        }
-
-        function initNotificationCheck() {
-            if (!("Notification" in window)) {
-                console.log("This browser does not support desktop notifications.");
-                return;
-            }
-
-            if (Notification.permission === "granted") {
-                return;
-            }
-
-            if (Notification.permission === "denied") {
-                updateBannerForDeniedState();
-                if (sessionStorage.getItem('notificationBannerDismissed') !== 'true') {
-                    showBanner();
-                }
-                return;
-            }
-
-            if (Notification.permission === "default" && sessionStorage.getItem('notificationBannerDismissed') !== 'true') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        triggerWelcomeNotification();
-                    } else if (permission === "denied") {
-                        updateBannerForDeniedState();
-                        showBanner();
-                    } else {
-                        showBanner();
-                    }
-                }).catch(() => {
-                    showBanner();
-                });
-            }
-        }
-
-        function triggerWelcomeNotification() {
-            if ("sendSystemNotification" in window) {
-                sendSystemNotification("🔔 Notifications Enabled", "You will now receive alerts and system updates from Aurora V.75.");
-            } else {
-                new Notification("🔔 Notifications Enabled", {
-                    body: "You will now receive alerts and system updates from Aurora V.75.",
-                    icon: '/logo.png'
-                });
-            }
-            if ("showToast" in window) {
-                showToast("🔔 System notifications enabled!");
-            } else if ("showMessage" in window) {
-                showMessage("🔔 System notifications enabled!", "success");
-            }
-        }
-
-        window.addEventListener('load', () => {
-            setTimeout(initNotificationCheck, 1500);
-
-            const enableBtn = document.getElementById('enableNotificationsBtn');
-            const dismissBtn = document.getElementById('dismissNotificationsBannerBtn');
-
-            if (enableBtn) {
-                enableBtn.addEventListener('click', () => {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") {
-                            hideBanner();
-                            triggerWelcomeNotification();
-                        } else if (permission === "denied") {
-                            updateBannerForDeniedState();
-                        }
-                    });
-                });
-            }
-
-            if (dismissBtn) {
-                dismissBtn.addEventListener('click', () => {
-                    hideBanner();
-                    sessionStorage.setItem('notificationBannerDismissed', 'true');
-                });
-            }
-        });
-    })();
-</script>
 
     <div id="dbWarningBanner" style="display: none; background: #ef4444; color: white; text-align: center; padding: 0.8rem; font-weight: 600; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
         ⚠️ Database Offline: Unable to connect to MongoDB Atlas. Please check your internet connection or network firewall (ensure port 27017 is open).
     </div>
-    <div class="admin-container">
-        <div class="admin-header">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAYAAAA+s9J6AAAQAElEQVR4Aex9B4BdRdX/mdtf3b6bsgkpBAIoNUiRFgQCKEUxoSOgghBCE6SIn2sBBJXe+/cHERIl0rtBJHQQKRFI71uy5fXb7/93XrIIfGRTdt/bt7vv7Zw7c+fOzJk5c35zptz3VqLypyyBsgT6VQJlEPar+MvMyxIgKoOwrAVlCfSzBMog7OcOKLMvS6AMwqGjA+WWlqgEyiAs0Y4pV2voSKAMwqHT1+WWlqgEyiAs0Y4pV2voSKAMwqHT1+WWlqgECgDCEm1puVplCZSoBMogLNGOKVdr6EigDMKh09fllpaoBMogLNGOKVdr6EigDMKh09cFaGm5yL6QQBmEfSHFchllCfRCAmUQ9kJ45axlCfSFBMog7AsplssoS6AXEiiDsBfCK2ctS6AvJDAwQNgXLS2XUZZAiUqgDMIS7ZhytYaOBMogHDp9XW5piUqgDMIS7ZhytYaOBMogHDp9PTBaOgRrWQbhEOz0cpNLSwJlEJZWf5RrMwQlUAbhEOz0cpNLSwJlEJZWf5RrMwQlMGRBOAT7utzkEpVAGYQl2jHlag0dCZRBOHT6utzSEpVAGYQl1jEBkXhqxiH68xcdUDHn3P3GvDJj371fmzH5e2+cvf9P3jrnW5e+ec6B17919sE3vHH2ITe8MeOQG9+Z8e0b35px8E2vn33wTa+eN+XGV88/5Bdzzz/k5/88+6CL/znjgJNemTFl75fPOHj71849cszzpx1QMXPqVJnKn5KSQBmE/dgdt592mjr73IPHPDfjwH1fPHP/i1/+yV53vDX9m3NHUnLJiEyieYvAXDxaZF8eLVJ/HSPlbh2rWJePV+2zx6rZGWOVzIyxcvas0UrmrC3k3PRxSnb6lop11paq+estldxvcX/lGJH5XxDyd/273mmZP0Y3l0yoWjrvvXP3nf3mOftc9tL5B059aMZ3d7j7Z6fG+lEMBWdd6gzKICxSDwVEApatcs65B+z3woxvXvryOXs//XXt/eVbe5nFEyT7pa11unKbivCPtzC0PeoUMWx4OGrEZJUiskERLUzCF3lyHIcURSEKfJJViYQskSeIfJ9IV3TyTJs0IZOBvJxOQZpwLEThsKFEDbVyZF3lVnWqcmS9LH4zMrBnThRr3pvkLuuY+5O935h71kE3PHfG/lNfOO9748oWk4r2kYrGaQgymnnm1OgTZx8++e9nHPg//5o++fXqXG7+KD8zZ7uYdvlIKXvw1pVGw6iYRnHhkOHnSJgpkl2TdArIs0xIzCcXYHMDonAsSr4kiIQgB3Ectj2XTM8iSZFJ0TSybZtUVSXHssnzPDJUDclFPux7DgGvZKfTpPkORYmoUvg0TFjU4CWVCRH/G2O07IyJkWBmLLn0k+3Gm4tfOOuAm/9x2QmHczuo/CmYBMog7GPRPn/R1IqnT5986Gvn7H/vlqL1g6/J5t8xrfxVQ0j/RkO8qjYqQhTzYN1ATsqmRCJBLnpBiwAWDBoN1kxRKAfTpkYiJBl8L9PqjnaikE6BoVHSzJEcMsgmn1T4AcBkuSZ5+OPmKJoKLyAT6QyAks2koWmkAMwSypV8j3RZzlvMqB4nReikq0b+ObjR2Pq4oudaR02MS2fWZ5sfbbBXLHx5xqGznz/vqGmzzz1mDJU/fSoBdH+fljckC3u86bTwIxd8d//HT9/7ntpsy7ztot6T4w335AY5Mybmpag6JJHs20QBrJMWomRXhirC1SRIIzlaRW4oRl0kUYdP1OoSrfEkaic9WNBlpVbYysqFaf+jrkj9Kx8nxTMfp+VnF7vhh5d60ZmrlZq/LAvijywXVXM6Q8PnrKD431cE4TcWZoKPm/3Qqg45klgCoLeBdbsVUCJAPeKVZEoKWQBhwrIp6/hk+wE5rkdBEKCKFgV2huojOoXMFA2XXNqptrJ+vOwcOV6YD48L0u++dPqBjzzzk0OnlS0k9clH6pNShmghT804evxLZx/+i4aO5e9t5eVe3FIVp2wRCY+IShJ5mQzFwyFyVY+kqEyeZJMEU5T1TFIxtVzV1glLZtCqrPfJwqT1t0/aU7espshZKwL9O4tNZadmuXrcxxRu7IrbY1a01u+w6x+e3nvvG547ZPJNLxx8wC1zjpl05eyjd7/6sam7Xjn7qF2vmr3/1y6ftf+kPz7xrR3/+NTuk26es+3HlRVjlzr1o5caDeOskVvvvIzCx64WkUuXusqDy0x6dZXpr86oOnW6mLpqMvm6Qp4iSA9HSJU0SqzpIoNkkrImyZk01QiPar0sQGlWTYhL3x2jZh7ektoWzPnh3je+fO73dg4IYwqVP5sjAWlzMg3lPKxsT5///W+9cO4R99ZIqf8Mp+yvh1F2AluM0RGALo3pJaaB0XCMUrZLHvxl2Ry1+RItt4PUR0nzhf9Ywc+XKPF95yX90Y/X7LPtPje+9N0Db391+r7XPHXzgdc9++S3b3n+vUOu+9uSE258Ojm56SV32qxZ3qbIXMDmTmuaZR9645+Sh/9h1uJdL7n7Xwdc++RDe1792JXfuOqJ4/e4+R/fbK+s3qpZbxjbrMe+tZyiv/k0FTyz0lLXrDIl6vQxPa1sIFvWSDIMcn2HPNci38lSRHIoGuSo3hA03PAavl4XPavB73rntdMnvzDnnO8dXd7Q2ZSeWpu2DMK1ctjg9W0cJ7xz/pEnvPKj3d/eQul6oTGcO7nasNSY5lJY8mE1PLIyCZJhTcLxCkpbHnWYIvVhS/qV5X785x+Z+k5vp8fXHHjX3AP3ufHpK751+1MvT7n3ueVNTU3+BpkXIMHkplnpyb97aMm+f3j673v+4cn/2euGFw9ZHRo7bmlQu/Miy7hsoSmen5+y/CWmSXY8Rl1yQD6mqL5KZNsmLiaFZYmymLLGIwqNq1H2jycXPTSxofXTV8456IdPNR0fL0C1B2WRZRBuoFvnNO2nvHnu907Txfx348mW+3eoj+9cSznScx0UVyxSJI9g5CiJDY+ErNOCtLviXx3Zuz9ytKlQ5JEH3fHG3ode++wVx9/y/Hun33GHswF2/fr4iKvvSR16zUP/OvCmJy/f44bnDlodr6lcEOj7vJsyb1whG0uWOQG1uYIcVSdf0cjG7mzIkLGTixWtm6XRNWEaFqJxW2juXSM7V3340llTfvbsBQdF+rVRA4B5GYTr6SRYKOnVCw47LrbSfq/Wab29IURfq63QyclkKYTlTyXyGbZFmKdRcybdutAJHpmvxaYs1bbYZu9bX/nRAbe8+Jcj7pmbQrIB6464+rHUkbf+459Tbvrn2dmYP2GJXn3wEke7u9nVlrWZPglVw5FKkrQgS3wmaUs6jkxkknBwWS/5o7YxzKtGZzree/PMPS54asYhg8ky9mmfSn1a2iAp7KkLDtv/gLY5r1fbnX8aV6VvV6kFZGiwADh7c2SFOjHVTPgyLc3QR/PS0qWdtVtP2uuml4866PdPPDftllnpQSKGLzSD16ZHXvXos/tf/9yPFlRVb7fQr5g2PyfNbrEkxyKdsh5RKmdSJBonGVqlYjc4LlwartKWw8n+/RjKzPnHeYdO+0Kh5Zu8BCCuvF++QAJPnn/oVnPP3PPesXbz4+PDtGsc6yAL2/jCiFI7LGDAayNFpUWe+tzK2KgpH7eN2WG/2+deue/lDy1H9qK7qqqq0ZWV9ScWmzE2fdLfufXJWXvc8OL3lunjtl5NI37ZYSkrwzjXNM1OCsgk2QhTwiJYyxjxbmudJu/cSObDc2dMfuaR8w7Zl8qfzyRQBiFEwVPPl845/MIRTvrlbWv0kys9MxyVXJyNq+Ti8HxZKkeJUKX5dkv27nk5acf9bnp5yjd/+5fnNnXXEqz61HV2Jo5PphM/79NCN7GwKX+Ytfgb1z7+64/t6omLTfms5Vl3ebsDq4gzSR+yc4QgTdPIUCTsrLpUI7tTGoX10uwz9v7joz87PLaJ7AZlcmlQtmoTGvXKz6ZNnrLylbkNknf18IrKhs41KQpHKsmyHUrbNnX5glaSdufHcu3u3779pR9978Zn/70JxRcyqaZrdIXvW1uDyR6gfnXTMA3f97pnb87VquNWq1WnttruShtni05gkoO/JOQp6VEKSQYNw6bOrhXR82uTHfP+ctaUo/q14iXAfMiCkK3fc9OnXBrpWv73rarl3Ssli6xkgurqR1A60GiVJWi1q9+xjPQxh970wmnHXPVAP4Bv/RoiE51o29gcEUgj0Rm4loTjteOBf3ji3tWV0a2WWspZqy2x3FQjZEsaWZZDupAo7DpU5Zg0VqPGCVrwl8dO2++2oWwVhyQIX77w6J2ntL4+d6zqXT6yUiLhdZCh5EiSbFrV1UnzO7PPLJXrdvzGDXNO//Yfn1paEtr9pUqounoXNmkp8PEgoBNwHQUqGXdY0+PZfW948eY2Y9w2/27NXZa0fE/GajFENhkCA162i+oiIRpNLu0SD59e255557kZU4fkWlEqmV4rUkXmnn3EKdFU8+OjDR/WLyCB6aYtqZQhhVpcmrfIFifvd9drhxx24xP/LlKVNoONcqAJqyLE2u5TZElIkvTTzSio4Fmm/OH+zOH3vnL5akfdZUXant1h+ZSBBdeiVZRNpijs2xSz07RldWhCncg+/uiPD75kTtN+SsErVkIM1vZiCVWoUFV5BZsA7/3kmzeOktruGRV1RhhBjnC+TjlRSc1WNS2wKi5dXVu76yG3vvy/hapDX5Wr6/KNXJYQggA/cl2fgiA4h4gaQCXpDr792X/vevvLRy1xQ6csyyorbClGnqzDDrpEkkkqJalS6optWxdcIXXSE7PPPXjIfFtjSIBw9rlHjqm0Ms/WyM5ZlRqRk8tS1g8oBQu4LO2/sdLV9t3vuseu5ClUSWrwFyu1g+M4vBmTj/V5JEEIIMSVjuFLqZIgCibf9sx9i/WGbd5pSd6y2lOCDNaKgaKQLMsUURWKujkapdKUEV76n4+dMXlITE+lfIcN4suT5xy0z1gl+XRIcfeQDB3gC1EQGUkdSlVuoSnd4DRk9/r2zY+8PFBEgGnnhQw4IQR5npdXXlbgdfW/dp1f0h7vpB5435zp/xH61DYRWdJmKpR0Vco6Mkl+mKqwizpcpsbxhvvMM2fsdkpJN6YPKif1QRklW8Rz5x958khhP1kZWBM1FeMwDt2TgY6NF+fj1X7o8Cm3PHXO5KaX3JJtwP+t2CgA8DgAkaefxD4DkWkdENFIOvb/ZivNmO/f9NRfX+9Mbt8iYrPSIky+FCJFUshLp0jHAFOjBMaEqvA9T529X7+ehRZaeoMWhG9f8J1LajKr767TtagsFCitoLTr0SrHv8uqaJh08LUzXyi0cAtQ/gUAoWDQdZctBOOO0L6gO+qy7sBA8H94z9zUN298ctqiDvNSE+eynpMlXSVScLivYLmg4KioOpP77ZvnHnzTYN2wkQZCR21qHd+avv8NkUzzFY1xVZLMDOlahFrTXmZBl3Xpfjc882PesdvUMksgqFdfwwAAEABJREFUfRjW7my2fkyGYWBjKb8hk69a99pQVdVtEbEHaEC5b9/9zJUtInxgs2l/siZjki8ksnMWGYFKW9XXU43VMT3e4d83s2lqdEA1bCMqO6hA+FHTVO296Qfe26DQjBHD68nxbNJIUGtbx4pmETvq27f/48qNkEmpJvkRW0AGmxCCTNPMrwf52wtc4VAoxB45jsP+//DlK6mEIyff+OgLS9TKg1Z76pNZR1BYDZGuEJnpBMVCOjXodPzWa1Y+8fZFUytKuBmbXLVBA8I5GCHNNc2ztqhUT1acNKVx6C7DAq7IOe+t9I1DvnPTk89usnRKJ0NICHExLGG+RgxGDrPvui6xZczlcoQ0+ee4n4JAI2jAucNveGLZJ7by/aWWdl1GCpOLtaEiXNJUmVQcaNRqYl8/seqFp2YMni8NDwoQ8lohsmbNDTUh5fDAzVA4opHqClrdnvvrksqGfabc/dKHA04bP1dhTdOOxFpwOIOOLR+D7fPhbuuINHlAAoQC2X8KGpDulPteMve544Xz5mWCS7o8h4Tqkkc2BZJMuUCiYTU1k+qClhf5l+0GZAO/VOkBD0J+BzTaKt9eo8mnBI6NsTIgXlN0BsZdCcc44YirH0t9qc0D7haAm8GVBhiJLZ8sy3ybDzPw8je4AHz5dSKnwe25oHrQgHUH3vLE7z5JeSettkU66xPZpkVV8QryzDTVS86kEU76yVcGwa+HD3gQTu18/dp6YZ9aEQ6TrEVpSWuK0kbtDX+u2ef0yRhRB6wG/rfiewBce7AFtLF7iHAefPxYVbGNiABbRo5ni9gNUE3TsMOonIrHA9p9++5X7p8fNBzclvJWa5IgsrIUFh7pvk3Vkv9NkVzx16dmzNAHciMLBsJiCOX5Hx1ybcTNzQhhzWDnTErkfMoY9RfveM0z58BC+sWoQ6F5AGBNDjZb2Lp1A62bJywkMRDZGnKY49nnOAYs8lyBuDBoQLujbnpsbrMTnrrGVFZlMw6FJIVCuk6ya1JjVD4wKi28lwbwZ8CC8PFTD7hwdEw9K6SRMGIRUjSdWrP+9ZNvffaqAdwfX656I0B4EIOPiS0dJ0Ace/mpJwOUrR5HsLVkH+Aj3i1FOgHLeATHDXQ69O45cz9MV07pzMqrZex548iXJGhvyM9RzEoc+9T5h/+aBugHzRh4NX96xre/NzokflOlOIoi+7SqrZ0+bum6rj1ZPWA3I76qF2DRfs3AY0vHPoOMAcf3ePbZbijfc362gtFoNH9wz7ul6+JZOQdkP3ObPk/H3P/kh81qfOoHq9pbckIix3NIEjY1RFUaqwa/eOmCY87+fPqBEh5wnfPM9MO2i3a23TYsLHTFyxBvxqRJum2fe/55Xn//3ERfdjrAVA8rdwpbQAaTLMv5tSBPMxmMeJYHW3e4G5zp9NrfmYIVJH4GYG4Jf/++rFt/lnXQbY/NXRau/n6776ctrAsdbMXJwqVototqs23Xv9V08qH9Wb/N4T2gQPj4aYeFY8n2O74+oqEu09lOSdujj9qyD6YaY/ndw80RQKnmAZiOZQCyBWSrBzARvyXD9eXpJoOuO8yAY1Cyz3EAXR6gnI7v4f+K/UJRscuddsczryx2jZNafT1rkUI65qUxEdAwHeq8fMGdL1549Phi16k3/FDr3mQvXt5nLzgoMtxsuXNMxN/TNTtJUiO0KBE86m9V84PJTQPqJeyNERr3y3VsATkxA4x9fkuGfSa2iOwzcbpu4nuAjr08sQVFYE/Q10GDxh158zOzF0m1Z6TdEJEnkU+CZLJpdFQaEc+0PPT2aaet3Tqm0v9wZ5d+LVHDSEfuzLFVoeMU38RawKVWx383GaubMQgBiNbS0d3WjG96Q90WFFaVzw17U1TJ5T3mxkf/H86DL1vWgSk4jmR0TYVV9KlG+JPMUPMNJVfh9VRoQIDw6VMP2KtSDS5NZ1OkamFqN4NViyzlB0fe8mi//N7nemTZV9HcJ79ga9Y9vexNwWwJ2YJiWnsqrzN7U1Yp5t37hicv7wxX39GZNSmTyZDlEIVDOimdq37ywlnfOboU6/zlOnGHfzmupO4fPfXwWEU2cVuVKioljHSrUlawMksnH3P/wH4VjdbzgQXcDY+2YQAGQYBg7xxbQi6BwYh15qD8gmyLWnHuasv/Z8oNyMO01M1maURUoRon/ccnzjtuHLe/lKnkQRizE9ePrQxv56a6cBZo0BJLvnLKn994vpSF2pu6AYS/5Px9AUAuh0nHwfY6MP4O9wP+8B5t+IKbdu2s3Bo5Mr1TMhK245Bs5ag2bFAsMEc2pBJ3fCFxCd6UNAhn/vCA46ol+yQNW9GKotLSNelnIxPDeSUtQVn2ukqapn0dU8cpiqLky+r28ze9uFiWlc/N1hWBAfPNe9R1o92Rd7zwwacJ95QsSb6qa5RJdFGFTNSged96+viDz9zogvohYcmCcOaZ+0VrWpZc2qAFsqyq1JGVPml2pB8P0o2YfNfDWp3HQOH1IE8f2c8/6MUFGzLEZXIR66zrRQiXbL+jbpvtjv3TK7NXZv3rbQxitkukBIIMYZLhdPxu9rknl+yvt0mb3eICZ6xa3Xr9pNEN24WkgFoTGVrpaxcd+dBbg3EjpluSIwHCz9ZsCHfH98rHhgwxELmQdZZ1AsKD5vAebfmCmzv+4AtWZOkDSY9R4PnkmElqrDVi4a6lt34hYQndlCQInzrhG0eOiCk/cFyTLBzIL27L3nPww68+WkJyK0RVTmCQrLNW+Rez+4oJW1UuiwG5zir+iu9LmDa7avzi/jKqPqE946dlWSdSZArLHjX6qYNf+dEhJblbKm12awuU8dkTD4rsXBP7pR64Mv8w02LT+TgRbzinQOxKpdgQgPI7BglXKBqNdv9MBd/2ilAu2bZNOjZnuHwGYSgUGnSH958X0vfveuz9lbb067RQiWcUhu9SjeRSzOq8it+6+nzaUgiXHAjjQdvpuVVLd6wKhymrhuljJXrRtFkv4TS2FMRVsDocz8rCIGEOOEogBk/3NJLjekNsYXlzhgHIPPjlbpR3IWjQuikP//P3/0mkX3HtgHQcHoah6RWq2MLwcyX3kjeqVjr9MPO0A0bX6/J5BqYQfqDS4rbUvSc/MPex0qlhYWoCwF0D+mwDhcHCnBgw7PeGGNxcHgOxG9R8DzoR5Y4EDVrXHopf7EqGY2YcIkkjXRIUSnf9/LGzpo4tpUaXFAgbsskzFSE1BkaMjyNa3Mr4YJ+Gsi4cgHVgjMECP7+JAoDkp1GS1PvuUbGzzO+e8k4r82CGzId5IHwCaNC6o+9+fu6SrHtNRtaIdUrXQtQYNqIVqZaSsoa97+U+6sK//3jKdrWyOMXMWuRoUUrq1Vcfcc/cVB8Vv55iSiL6V90Wj4HBAOF7Bg/7va0hA5CtbHc53WHmgzg+vA/BH7SuK1B+tSjnLcnYPq1Z1UxxSaZKCn74yKnf2YFK5FMyINRN83zF9et1LUxrrGDe/Fg6/5+HSkROharG9pIk7Qn6rHwGIt8weLCBwsFeEW/IsAXkcpm6gc1hnqKi8ONAg9ZNm/VaLtk4+hdd6QxtOWwEpTpSFPKlWEWQ+XWpNLokQDj7BwftImcT3zEw/VKMmN9mS5eefsc7TqkIqVD1kGU5/80GBgYDgq0ThxGfP6JYt4HSK/a8IcMgZ9Bx+VwYl898eIqK+7tAMmjQuiOuf+yBdkea05ZIUjQSoqgiKJJLHvDk6QftUwqNLgkQRjJtJ9WGpfpsNkPLWhIvTHlwzqDfjEHn8+/HnMJgQDj/rXn2mdhysSXk8MYSg5jTMti6ie+ZmAcThxmIXD6HP0eTPxcelMF2teaqFk8my7dIWJ20RTwalto6SuLL4P0OwkeO/sZWSlfH8SESlDZNWiPol4Ko918fKHFVgnU6YZ0l6lVNGXwMuu6yGGS8nmSfn22ocNSDkwzaw3tuHNORDz75bEsgPWGTT4YikZNI4OjC/P5DPzzoa/y8P6nfQVjhKcfVh+I1ETVCHRln9uGPvPF6fwqkSLxD4HMlqNeOwceA44L4kJ8ByYfzDER+xvE9EVtITdMG9eF9d/vXyOK61e0p8lwp//MfdZVRUjuT/b5D3K8gnDl1j5CWzZw8rLqWPp6/jERt/c3dAhvk/vGs/JFIpNfNZNDxBg773Yf8XCjfs78hYmu5bur7sw2lHejPj33ony8mA+1pR6h5EFaoCo0wlJNnTt0v2p9t61cQDpeMqfWqskXHmjWkxutmH/iXt/7en8IoEm+W+a94cySTyfSaJVtB3sBhMHFh3dav2xpyXE/E6dcBli3CqJ7SDoZnOSN2zZK2BHGbg2yK4lauIebZ3+/PtrFC9Bt/Pdl2nGKbZHtETkXVzKGwFoSw+RsMIxg8CPfWzVVV9X5MJ/PvmjKwuUD2WcnWWTiOWi8xeNkq89oQ4Z+uN+EgeXDko6+/kBTaG6blUhyWsIp8kjo7ZgREUD/ql0+/gfDZb++8S9hM71sZi1LCdj/8VKbH+0UCfc10w+Xlz6cYhAyUDSfvMcW9ANrP2epxKt71ZDAxqLh8jtsQsSXszoN85yD9gP4nMqj/Bt1qV75RKAYZJJGUy9K4moqdZx41+aANZixQgn4DYdTJHVwT0o0MhOBEwneedP9zvZ+bFUhIfVjs9rBce3B5DMCNBQqnXw/9GfH8Hcu5sGLUDSbE5R3zyAc2cPlSPQblN+8/L4KTX3z3Tx1Za/6atg4yNKwPMymqcoPDPp+mmOF+AWFTEwag9uYT/cClxavb2hJCebiYje4vXpgmXgjLlWe/sQD5fDoGWT7z2svF8LIgdk1s0WDJ8kAMAkyuEPv5vLj9SsdpOD3qlv/fFvB/i4QyaFC7pK9cn7I8khSZwgCi0tX13dsPO6xffn+nX0C43dydJo+sqxvvSjJ5lZVPHPHYGy2DusfXNm4Uposn8PqNbxkw7G+IGCCchy0d5zEMTKIkiVH2v5/L+wIAupKfcRpZlonzcJg28OHyOR/q1p0yivzTum8Gq99l2f/rGDE/5QCIWA5WK9KIejt5VH+0t19AGLfsaSq0ytYNylZUDQkrCJD8lDu4Gxis/Hy0wHE9EVsqtnJM/B6oaZpssR5AnmbQZw7lXsjPGHwMKE4Pnp897ynQnY/Tc17QL3pKPxieTXtpXnq56c9MOpSfPVTpKsXI3TQQ9pEgig7Cx2HyQ7b9Lc8N6NPmtkVvt+sv9lFbSrkYA2MOb3rkX0+DpSEGIB8tbEylAbB8Mn4PlEEG+kM+4ouX2YgPbNvOx3bnyd/0cOG6MNA5H+fheyTfBvXNr10RHrSuXeh/s2SVbNslXfJJNZOTbj9sl6JPSYsOwiC9ZNeoJraQYQVto+L+ppcG3f+R+CqlPR3WJR+vqipxmAHIli0f2cOFLSYDozstwDIX9P5XZDERfwnHc1rmw6Di+56Iy2fqTtMdRh3/pztusPonvfTuzBUtne2OaVGyq5UiwgVDOycAABAASURBVB7Z4Kv89lBRm1x0EBqBfUhNRUTJZC0yXWmw/3gTd6YES/MbKDWH8+d5uM+H2bLlAxu4cN7utLBQTT0kvxfP8taQN4C6+SBuvY6ByukYtOzzPYcBxoORqRE0aJ0gCjw5NEuRVFIMmarjKh/eH1rsBkvFZNi0335KXFenpNKdlHX8D5OZ0CfF5N9PvI4GcGLdvFnBee3Vfb8hn60gp1mXJ+W67gt8vx5qRfy9DCb4+d+pYb8n4nI5PYOW02FKmx8o1vG9gOMGMwVe8DdZCPICmyIhhURr63dmbrutVsw2FxWE46Pudr6Z3UoSCrVn7CdPf+ed7i32Yra5qLygzDO6FRzhvIKzZetW/g1VhtNyPrZQSHseaEPueqQNuHwAdkNpSQjBGz2EgSL/PiWmtPk45osyeB0b2mAhAziBLVe9/Mnq5rZ4dQ1lu7podGXFhNrGWFH/jVxRQRjT7N31wA8HnkQiXjcUNmT2hDLv0a2jCHcH84ofrDvP+yzyKwIMDs4nBCZPRHw4/xWpvhD1vhDiWQCR2Op+4clX3HDZHP15wHbXi8vAsx+DBq2b9tpruXS8+tmcLchKZEklh1wzvXsxGywVk5mWTO5GWAS3diWWJyPxj4rJuz94wYL9srd8GRywSGylLkZZGzVzAN9rAMS81UWe3rrrUEAYNGidFYq+2tKZoFGjtsCmmUuy7+1VzMYWFYThRW271RhxsnTt+WMfe35VMRvaD7waYWV6/T4iW7N1Fum+jW0DgPs8rNk8zruxeXpIJ7BOPKKH5wP+kStpc7RIhJqTnZTDUYUiaLdivj1TNBC+sc83xkZNZ5Rp2hQYkTcHfM9tuAEX9AUI1q0n7wG7TX2r6LcYBJCtd44tKtaJl/WulNLOfexzr33Snsp8qushUnSNPNsaG+7oKNrXuj4PwoJKalXzih1GjRkZk0JhSknSGwVl1v+F12MKec46APWqNuuAfP1mFPI3WMNgM/J9Ics6/tsi8rO1LcKDymG1HWSy9kt2Mkt8ZhiJ6hSJy5OK1UipWIwq6+M7msKlha2tS9qIFhSLbz/xOXbdFLLX7AHkZ1DIVx3OI7pHlwMI84f3PabawENMbbtT/LI7MBh9J1Cea2tZQw01tSRsizQnvUux2lk0ELa1r9wlTTZZsegn01+al6bB+5HRtOtgCfPvJCLcW/fHXhRwL/L2yhoCyCgi76bguj1oUDrViCwKxSqptbmF6gyDqrLpoln+ooEwrMkTfdh9Tw+9Q4P7M42PFdgSMvWyqSuRv6fDeTzu0fHh/Q09ptjAQwYhdlvzqeDnfyc1fzPILisSNL9T+J0iZBC5DkUcZ1uMXtDYwje0KCC8dfeJY6REpkaXNAqE8e/CN6tfOfy+mztbw+5wTz6Dtvt5dx7eEEFcX7yxwi97B8yju2wi+uwMcR2fz6x29/2XfdQF2/feKfDrQIPOTZ83L71UCd7LGgr5mMt42Uz8if13GFGMhhYFhFEzN2LCqC2qVq9uxTRUn1+MhvUTjz2wkTGye1cSlmOD1WBl53UX8uXTdltPgAYDMc3MR/busgLZn2Ue3WXz9wex1kQ08flj/g0ZfsYgZcsH3p/F8z0T13NdHU/NZxyEl5Qs3rE9n3zbobqqSooJlTekCt7SooBQImUrLwjIcslNJfXFNEg/OE/7JSs3Ky0rMoc31FRWbgYr5+G0nI995L0Evg/qC/frzxfC3x/svked84BjADIQuT4MWAYq16k7nsMcj3xXghTQoHOK0BfF5RCpHlEWmzOYuG1XjEYWBYSB8Gs++s9CIiP0qS2nMsVoWD/waMR52hRWWrYY3dZwQ/Vgxee06xQ8/33DdXn4bHBdsNfeayhhZXfdEM47BiDqnJ+acj04ksHGQGSg8nO+53jQSsT/P/iXhMPhQTkldV3541XLV1LECFHazFLWtKrR3oK7ooBwZbJzOGFy5ZP8zunvDNp/9JJfv7FVgxX7zLpsqAe7LR/n47Tr7hmAOMnhmD6jCxhQXDcukQcKBiAD7fNx/Az0NAB7MZ7z/07kl5n5WwWNAOoP8OyqbDa7Gv6gc0JS29VIiJKWSSQphJlpUf6ZaIFBuLafJF/egjdl0mmXd/vWRg6uaz2acw4sRd6SSdJasUJpEd2zYwvI37Jna8gp+R4+v68Jr0/dQ6hfwCUy4Jkf1xNAm4e46xB3DMA4DGEBsB6Kul+FML9k/yF8BzToXTKbXSopWsr1PfJcIl1SxhWj0Wu1pcCcqrVoXTTQSHIEbxIUmFu/FH8qWxQob94CQoHzlYBi5/2eLpyPv2XPadgKAihPI/wBqM8d6sVfTfoIALwY4T1AOpjwuuc8xPFv/Wzqq3HIPnjcuHG7pF3XX9bVnqDh9cPJSWaHYdQShW5hUUBY70v1XtokO2vxuVWh21Ts8vn7dlfColA36ACk/JY/FHuDdeF8bJE4L1tBAPk3G8y0+QluRFb+L0Rs5fgf79i4Lxl3XmNj6PcNDZFuurmuLtpNTduS1rTttnm6fZdd1EKAY9qsWZ5r+W3D64aRlc1QiER01lQqOEYKzqBpP1KiiWS17gWkqNJg3Bk9sluLu0EHIBGsTHd0zz7GWT/wYUE9kgTx1JA3UXrOU6JPm4gUBs31cX3CzTU1u14fi+15mxY/9sFo3Yz7japLb5f1226rjt1xY1Sb/b/RyIMzY/FXHgpp7zxRVfnOLF199zuu3bK9bTV/LZtt3iPwV29tmasm2tbqr/le836t1Z37rGnpnLRsyb+GL5j3wZzGhvmPD2uY/+jW2yz90zbbv3XvTpOevnvf/f5+xTf3vuG33/nO+ZceffQhmyMm35MXyKZLugjINlPxto/qQptTzqbkkTYl8eak3fYlCqRUul4iQSnH8TanjBLP84te1Q8gpIAgHVBAhbSC1BefphEjwpdV1I//bUXtpKurGo69vKLmilsbhj/4UE3l3Ekxfc34NW2pnU3n09Ht7W/u4ctzd3X8B3fIOTfsZGYu31Oi03d1rR/v6jlH7pDLHPu1dOab29neziMSiZ0neP5OsebW2EjLjg53vGgkkYnVeBSrsIOolnMjQdoOm8lsWNVD23qSuvXC1rbxfjw6zJL8+Zbs/0MJ60+GIuGro7XR21whbrvi4Yd5Wr/JTe7qTLasWLyc1rQ0U9vqlUbaC7iHNrmcTckgbUrizUmbrq4e4ToOmVjsyqHQYPsO4QGQyTagzXYCJ4EycksBBRih/oZgSbjTiNRr4nVb3qhWTLpTj06/Lxy+5UHDeGOX9vbMXpn2BbtZXW/tYiYe3M/zL9kpmTl2XHvXnuNNr2KcRFRr+zQxHCM9k6UozocNz8bUzqUK6ICRtKlOSBRCY5XAozAar/sBVYV0qsTRgJ9zSfZlchyJEhmf2mxBXXpFxzIl8uDCUNUl7+qxYz6sqt1q5ZYT9SM+XRib9p9PDjj1ww8vOHHu3JuOe+qpZ85+9Ol5TY8/vlFffv5KQQeUsC2HYkaUNKGS5MpbfGW6PoyEyPqwtK8oSs5mhSZkEa2rbs/JLRjzvyLRAI3C2u/C3lSdh1gFFxnzUC+gi1GWCeoXdwHWYr+oH7nH9cNHX3JbpPrBA9UKe2IyM38Sibd2DMRN27r+GTvI8jdGWxaNBZhGOS41OibVpJNUmUvSMBJUiS1FwyOKQqtENkUK2SSBAsrB98nB87gqUS7rESbf5Cg6tbk+OZUxWoKBeoFt0mLJpw89+x8LI+rFSyqiB3wYDY07uHN57Q/SLcfP6Fz1u0tWLXn4F4sWzW+aN88uhKACP2iTUXBUDxG5HkKFdxBXYZkohiF8x6dOK+uvXkX9pmQFaOX2WPv16pvzPCK5uDh+gFUh8TceClDNry7yqtra2O0VkYPuDSlXPloRbt2rrTW9d0fzq5OSHVdsb6eP3TIwaQvFo6iXoQhZFILJ9nIZisoSLBWR5BEpnky6opIqZMKqloCnfAfjFiAjqggbpOnQZQpICavEL/AnHJ+kUJwSapyWCINWVNW2vew6t76hK8e8Uxvf8gHPVY71rP2OTXVedXKi5cULEy2LBaEAKs7HJ9EK+0caySRjZJQdERSas1RoBtwrlfEq8hUlaCLyC86vSAxw2H2hEFCPXvITOFOUVZW/tNvXh/NfqFkT1nLXjxix5+11VZfeHzde2zGXTW6VyDwLS3fx+ES2bgeAays0pyqTpkYpoLhrUYxcigJ8ZNvkWjaFVIU8nGCHdYPCqkY+ho6ca5KiKKRJMmwerKAuUcohCqBZq7MmtWBqlw7JtMRzaLFC1F5Tu+xd273lPUU9el64ctz329vqz06bZ/4skXv4F62JhbOIvC9UvMg3ki+6pAD1R73DqgFrXvgBAKKign4MlN6aXENaJNqKYO9daZTQgOOEEwKsd3pVHSi9j3HJdZw/9qqc9WRm4N1dXX3QX8PRW3bv6Fi+zepVc3fJ2ZdvnXV2H4F1WJ0GIJkOhbAwSzse5UBxTSYTCqhiemljOhZ4HgBGxPEC+uiCV8IyKevY5ENbBankuYIymKLGRZhs18C4K1NGiZATraA1WOetiMb++aEuzfiwMj5h3/Y1Y07wstPPyLXNvDCxtOR2ywPXCZysT2tWtJCTyZHnOAGaXFBXcBCaqH5EiQYZjKYIDhZ3Sq8B2C0JReZdvD57iWHGlqTfXB/b8y6dbpnU2ZzZPtX17IRs+owtbat6a0wdY+kM1WDDT7N8ItshHZskds6jKKycIQOAtgdYCXIBOBXWLVhn7S3EO5ZHhiKRoQmSMIDIREjlYBhBPIUoCeAuhsVbooWDeUbk1rdlecriWDR2ZFvXPmck/ZvOb0vyLyoEyFayzlBCaKMgN2uSDkl4PPIUuLYFB2EODbAxYvKrQAgOBhfC9OtKbogQ0EQO9EBC/DcN8n2W8rOw7f32s8jNDGCar1wbi+1xuyrfctCaSG7rztTcnW06Y2sArRLTxxD3Mqy27TpEDDrMFX2QjDWZ5GskBwa5jkKupwJUGgCoYmopUxZwsYE2B00AHgkzZ/J8nwI7QB4i2ad8nCMcSgubVkres0uqY4e0fn0r/cRk65lnJzqem97WlqYB9LFNMxBot+SibVjEejbfFbYB3D0F5aCGROCgI3XV4PcrC8qrGIXLsnyc66KHwExirYTfk+u2mLquE+fDWpI0TAM5DI3nd2lf7Sl/T894R/OOuD4D53OrdrRyr+6iKGeM80k0YFU1CjzCPpEKYrAEggg6lS9OgpIRdIsHeQkxWKqRBCsmhMAVEezQZ4R7DhI/RZ58PvhcjsADJiwLydBRkvApI1HHKR0dzwzol/QhDCEEmi4wwEgYjKjgH6nQHBZ3dq7qcCwooBNC/4lC8yt0+Z7nXQsgEoMJ4Q2y47ScqDutg634deHAMIwT+dmm0l2h0Df+V6ab90+uSX0tZ92wjSLqam2XYrB0XjKT36VssVzKEFs2XpVr5AUaMK+Qhk7QA5uUwISimaQ959McAAAQAElEQVRgBSfyhGOEIEcy1E5h8l3k9kjxKU+qr5AcQENBAcjF/mEAcMYRZecCMiQ899xjr4zHt9zU9qw3fT88CDAP53YRZgrsy7oeFLoaUqEZoHxfqa4QgRtksPNVDH5gWTB3AKxYjEHEYNoYLpxWCEHdPoDH4afC4fBI0zTnbEwZnOa0XUi9oSp+/MNEb24v6I2JHp05zvfECEg03WlShSLyX0bVhUSV4ThpagiWT8FWoyAfYGFLyOUQ7tjn0RBZAUy+I6RbS3zHz1AMggEMpg/wEUogEsQfiXw8ZAVlAvYBR5SKAaBS16hG0E851UAlWw5Uh3yyIREHZr7DLfw3f7gfCiovrFd8K6w2244zbB6RXFBmBS4cVu1X9roNJiEEfbau2wi+PC0VQqQAvP2R/Nsb+528JtpWuy9Sf/y0RcObv551HtgqFtlVsXIURiE8tchaRCHZwHFBiHDeCAGrOAxPkurYpGNY9wRmIZJNhDVbIFzCRmaeCB8R8AUAghbgyI9c+DzRxmwW5RHUkCgQSAOlJHIBQp9IuLQ2jDIRn0+LGAXANKC0lVbu9N/j4B9RA9L5QkSxGZNvuydL5Kk8oS9sUyD2wjLg0ltyaUWCea+rq9P4fiASLCB/uTX/DyQRJgZVfl23gcZIWDcCfAzY63zf53XxRlk/DF7aHZV15+xltDRPzCQeqOxcXT0CB90GAMgTzJhKhKM7cOculCjr5cgQBkUNHfuUEpTIoYAcIqzVAhBjSQLofATgEYeZfNTPFYI8rAF9LgrPATXkJ7SRPvvwIwLo8oTy2Pdx7wOaKo4hXAAwME0aJiRRbWdnfJZxgAUkRa4lWSKBneRAUxLXrliRK3QTpEIz4PKDsDYfFoDcpDWc7wciwQL+jIHHGywIE68JYRk32BQAbz7oawAs/1szc0MZ+J3NW+Lx4yZF4i0T04nrhgfpqlrVpWGGQZpvk2P72GyRyMZOJkkq6QCQ4mVxkC5TFmu69lySVEmQAuIRnfnl13UeIR/lwccWUMIDAbKwe2r6AdlBkLd1HkwfxwtMQFE0iUACzAgWlhBD+Q+DGMmIiTAN7jRzFFE1gJ9olAhRdad5RdOYMTxW0ED7BJJo8GVBTJ4ilhWj/lIxmCSz5uKQEaFojN8qLAbHTeOxwdQhGimEOAFgItuyKKSHib8Q4nlQR4Hc3YTgl9zFuN8K9BFog+43FdUHHRCrefVrFv1pZDZXOUJ4JIGfj0NzB1bGo4DqZY3UQCZ+RSwALGTEoRbkYcdWRT1qFJls3yMXoPLAka0dg05GWgL5pJArKWQKjRJYNy6WNFqqhV5qliMHd8pKS04WeE6kCJ80XyCHREQKeQj5CCGK8qikdR/wCSGYw/Q3hkHBzXbRSE0VjR2J7yF6ADp/OKGRPOD6vvi0GA2QisFEl+NLbVcm3wt4OlYMln3Lw1FOCDDsy0KBOsrk5OeBEJ0ASUxgx55Cef0URKlQSN2NiK4CbdBdU1sx6d6I/o+dzdyzOFSfVG1bpJOPNZ5HJBP5KJsL0XBxPBtwcEgFQClwyJaQDvFcDRglsoFOC/eGbhAMHEqRSNXCZCFEcohsADgNIDercvC+oD/NG7HF7odbucmHWJlnl0v6b53qKGUJbIFsFQAX4Oah1RYT6hGA8o0kgpUkUjAQoYoAqUz81gwPBGFY5i3s3HkzUQwNsI+a9eoMW2A9LbH8OotRfakYTBzXb+bfUVF0ZXwx+PUtj2g9+f7vuEwfGx0CiqmwxnNEngIiSRCikYwIOL0OMfW5nLPB/zz1s9raGM75bh25JvHWDkLdpxFWr973KU4+GViXwKPuD8r87JYtEuGO13qSJDNrkmUlv4bL4a7CUMm0TIro8LFW4zjHiNIy5GmpqgzecMwHPgrrO59k5064cMX8z/45TzaXvn1JMhn4QDvGHJREebxJuMI45O8JH7asTDJJ+CM8JTyTKJ8HosBylSocc5IZjx9AA+xTFY9Vu4FPlmNTICvLi1F9qRhMaqtq5rsWj69OXTH49S2P9GGMLgEFZksjAYAO1mYkAAU5WPemPSACB208Bsdr54H/Btd+14VCR++RyyQm+uIn21dVkmE6FAOCXXS+CQsnuT6pKJOnk3zY7qNQJge+C9X32ArDd50A67EwmTgrMJE+FtNoDcpyEc5ZDtaKgixD0CdBLvggQg88p7u7Tyf/xOldXe+hqC+404kcEY5d6bHpDatk46kMYouoBZQ/qhDwEQUDLaG5EgWoA98LWGaBhz5uOIkCREZ8/yTcDhjXtN9+iqpJEx0jIAftl+LhpcWovFQMJgnT+STQfaqMq6OLwa8veWCGea2KC5fp4eIAZaqhkdAEYX5NKpRQIZoHbRxBHj2MJD26y+pHjb9F1f7fRNd8qNHKiRrXo2xnFwnXIgW94WB7JIx1msKWDSUxAOERdJp4o8UHP77Pb7ZA43XUwMd60EGkqinUnrLzKeKVBjmo2DKg8f1s9o0VVZW7zUjmTry6ub1HC73AE/d2BHKQQj4Uj1KZow/A+YQxJ7+xgxkw4lFZcApAPogHKaIAf3gUECavgqKBf9xv6uomIKZkXE8Vqc6tCDtubnj1mOHUHJiU0eXXe0rfV8+kviqop3KsZfOXdAZJilQYW6N/oL09pS6dZ9jeOwD1jTlAXwBJBSrlwWdaNgUAjyxL5EviHotoJyLq8bc4pxLJ10rh6bsm2hfspmknjgLIKiSZNOxORmUobMggC+s9wsf1HTI9i1RFowAWz4eSs+VjH9UgDWkioDCss0sWCdUnBYCzA480HjGw5lvR5dAiVwSramqPXejSnuc2t7+FLBt0lySTC5ZK0t/SHnMSGBJ4zelSAF6cGcYuD0YiCXGUj+Vpcf4ZLj5sJAGCmBxTxHOp0bXPR/SAcFWheH04qkVsPaCuOFGihjY4o+mLhkl9UciGymhCXzVOaFxlO8kJTx9yCOvQhrKUxHOhSjdC10gG+LhC0HFyYSEknqP5rIbih9iJ/CGe8cwN3le7n9fUjDxUMV7cVRU3jYPFi2XSFHJ9cmyPfCAcG1aUzqG/BVEkHAasgnxBtmvnFZ4tEJOUV3l+5OcBwKkMADiDqajjErlCoSw2X1ZjIvuxErp8TW1NxUlr1jzE8udcG0trqqp+l9EMcgAoF3VyhQ8r7Oe5S8wUQmEPYxPi15bK8QEiAzbZGLFk+GGsrapy2dOvrKvbcm2q0r6G46FR9SNqSYRlio4dtuqsVxcvLUaNiwJCbojt2e/rSjCmgzp0vi91imj0ddvxJ2LzD9v/qC2UkSRBbAkEFD6uhHZzHI9/KRsP1++uCYWm7ZHJrPia4u9b6WYoBG3FspJsWNIIzJcKEEVCCiyZIF8QdWaz+cKq4xXEglLJh++TCoWWoeQeAJFDr6Ukn9LwHSwcVZUorBqUAKgXOf7LC6urtj7JTV/2wzVrUvnCNvFyWXPzmwszyTdENEq27FP+TRrwAq4+K8lDiAHq54cD3MChaZAPKhkExAOGjoGGjyvqzdT38bjkXdpJ1+fQR8LAZlckvLBYFYZoi8NKhLRHlZBKhuoNiB1S06afYTd/rXAEkZAw34MVpEBKhSjakHRyPa6tzqyri94Uj9+ynes8PEEE2HixKQLAuVBM3ydShchPaQMobC7nAugBSQC5CisLdtSVTBArOq37SPA5noHKZKE6OZWo3QfBVC8K/GBlKHrsUV5m35+0rej1f74K6kf8dAU2iRyJOYM5HPOFh2GByMMg0D0N5Tiu21rfzwOQwzwl1WHhq213QBze11eEdgtFDDKx7o/X1mzUm03czt7SfyXc25I2lD8cWeIbOoXjYX79a0Op+/v5SGyCnMDnbFwRRYJNcghTQ+2ZgPyGNKV7/JWApnh8ywNz5tLdXO+MYSjAdSxSZAnrPEEBlBqztbUWA1aErQfv8SiCSMDsCiAP+CRWeCaLCNNCIhnmzkFYERKUHOXgxlMitDoI0XwjPvuNeHSLY3LJh5CkT9wZravmdsSMVlKAdNTJB2mopM2lY7BwoahC8khwhREnQBgXsBoMQB7u4DDAKI5Pw3Rd1HZ0nIaYknZaOjVRkgl7F5WkBKFFxaqsVCxGVrzuPS8WI/Ls/YrFc7P5SHQhNH1tdiDGczzcSvd4ZB+KyBxove7yEE3byc7M38pzqiswtTRg+SQf6hmsJRgQYuCx0nIh0FNisHMc39O6BxgEiAmMiVU67TgIShTIGtZ+GvmaTsstK1gcrTr2xK72713W0dHnZ1qLvNxvWrIWVUcjhE0qsu2AdFkmAYIBxrlkQN31JXy46vI6n1BbguwMRSY5k6HhnvPzL6ZGwhJyjx+2S7hGVnaqqqigznTOMyoq3i5W9aRiMZo266XmbCS6rDoc32VO037QyGJx3mQ+daGofk4+F4ZFRVJJJf1iAJA3YKBH+SdfebkvFrliL1l9eBRAq2GH06MAfxoJbKsqvkw4paEQ1nY6SuH1FYMMQer+cJitH29M+ugZVnRZU8lFAl0NkQnF5l3LhJCpNZAebA6Htz6nc1WfWT+w+YJbVTPyTjkaDzrSWVIBPFSJfM8jPssMqxKpsIy07iOhbnngrbtf60lkYe3L77dWZHL1d9RVfXNtfOld9er4TsNqq4Z52OSS9PCCTkGLi1VLlmuxeJGpV7zh2ub21e6oUUVjuomMJJWOyWUsIiBCwEz5vn+2TZkeXz/7fUND5D5Fnz0mY11SnXaoRiayLNgvQQAgYRoLIsI0TSKZJIT+62SYEhmx3TEMTiYCAgXqkMPBu6FHKYt8VqSCVigyLdKVsxJ27qSfJJO9Xvt18/0q/8YFC6yVbnApg95EPUOYmkqoqyIEroJsCxWkL35QbRZdvt38RMFRTAw7rdWCqCqbvYLjSpE02d82a2coHItTtH74vw67oxc/ILyJDZQ2MX2vkmsVwx7VYxGSZL9kD3Cx9rmctUiGogWe+KFPDv8TlfW2+9rKyjFjujoXTAxHj6yGtTKkMOVsgsoShbHIl2G/FKzqVBQKPURIyVs2VlaegvKUQKa1H7aCHOIpqwH9DmFnKEwaZSyHEliXLgjc1gWVFbufkE7ePI3ys1ROXlBqrQg/vEyIIImRIcdWEKODhGmmC2uvo/KoJq2tt49hYu1e6dp7yk+7Hc8n13YoKgkaJsTeVzTE+Z3agtZ5cwp3NH97oyZGOeyaZQKpx023L5Xf69uigrDdk96VQjqFQ1pJvmGPGdfRwEqU907IC06Fnvd4BNEUiew4vKtr0VayGKZhN1MBWFQhUUjBQIOuMbMmMRoDwC4gHPDD98knD2kCImJldcHQJQ9PEAHH1g+6DQUWuJPJN8LUjqOMhao/+z+a2PrclhWfveuJBAV3F7a0LO6qjt7uVkQpg6k0YXKuoD4aOHs8T4YPfOKK9uDaPcWWEOYWKJjSu65LIUBUTZs0wrRPxqOSc/GIOpmX7iISoWhtfdF2RlkQLCv2i0I/vu6uYDdt/wAAEABJREFU/2TJn5/IdO5TFIabyASbk7+ArhA2/o7xiO7tKft1WvXUHTP+u1vrIRHCSB+HWYspAaW8NKafPmOPeCeTldKGqbNg3mzhAnhrNdeDhXOERllYCD7385CG+Wk+kQzyKaAkzgQX+Dn6j+JcekK663tNXV1dnKbYtNJQ/rgknSIRilKAXdqUa5GCCamB0YrrwgMK+0zcXh5kBElIQdi8EVhPasQ/71EFbatImji8j5fU4f1zTSfvqLreRAtHMhmN3ssltI+oiB+IpYjcwEqJhWbLhrLNBw9e3oDb0nGquisqsy3oGNBM0Hrd72qqpk8UwcwtJUVEPIcEpjAS5rEOlLMC6ukiTofF8GAi2NrBA/igkGJtkWztRADRY7rpwCryJozAMxmPWaGxIqUuwHilogQLYsaBPzHtK6kfP00r2hZkDOORJPlkYmDQhIpptUdYL9PatmDOgPph4MK122EkQXo/sMn3bOJ2aQDmyJAqqk2vpA7vY56zeySEQyQsH7oM46lJd9zhdLeiGD40oRhs/ssjFNMfCmAxwqrP2/3/fdDfIdf5vSzkU8mjHgF4Q1Q/a2Ki86Y6P0uKlEVyl/K7mQCRBCUTAKEEALqwAx4Iezt5RVU9IgV6KbE2QjlVkIKHYRw1OO7aZ4RPBtSlKbQiFGpdWBnb6sz2xAuI6neXCGl/6ECdg5BC2WCtjmpoH7cJTScXFwfE60UZbfSQlt/uURQBGRFF+CcwMFgJJKqTxBUXYDOr3xu1rgJ1Vc5R4aigIBIiu3pYUaf7XAWJL8WkdKWyIF4/zFZkd7N+7q8QddU02i5u6H/1PO++HsoXt1fELt0ukG4cj7O6KGwBb9d3p18LLsqP+B4igbc8+GSEuxUVwc+cDyUlcimby1I1Op/zdCKTi42rVbLy9qJoZK/pbW38i9Xr8vSvd15rx2st5L/B8Atjl1SRFLIAL1YgbruPAYiJa8nWka0/T01ZIrGwSkkzh9YSVYdjpCUyYjsrcyqn7W/6173nVkZC/rYe2hIYkWWmVPtysevEMiwqz71+eE/KUqNzOjs69v3k8T/UFpX5epipqjEsmbN63AX9f1U1V4xO2ZfXuNg2sX1KOz6pOuWBpgBBKhHsAsPKhbI5UEmXlMAlA/NRNcBDQbRWKaGWCDuyCwvqUjV2g9wMFFRgD1XVaLkTvNJqhA44p61tPnKVlDPj8etN0ydyA8ph4czNQvN6rCM2VCmRdSiEo4oaJUS5RDuN1StpuBn8TxNhYdxj7sI/FFZiSnVN1YjqkY0kxyufm3xeU1fhuX6RQ9FByOyVyuEPVNfUSJLnHs33/U2ZjPliT3X4c13N76o72y+eAJCEsAPKh8/VYY1sk/KbKDz94vwBrJvHmy/8G+rwJdyzgCWs7/ImMiDqVtq8LxE50FIXmTNQ0hZd+9uC2uqDTu/sTCCq5FxHKDq7w/YDD9NtFbvcvHblSgpcJPIx8FB+UCJ82BrCIyET6UhgYSsVMw2Kk0FkZanKototqxr6fW1YGVWO4N1bKRQjW9Kf4ToXm6AGxWYJfpI0y/X9jORZJf/N6zsqIlcM6+i4aDtYLN1KkU4mCVgBH2Bk66fw62hYB7Lts6FsjDcWKgfRUljFgDwgUEBFZRCCxACUiDiIKR2RrRu0wvZu/3c6PfX8IvzEHlhvlmtassRMqtqlJtZ3HTmLsJwlHoCwxIfVJ4T9/GxARuky2sq7vBJQyO3lgSbLmzRoNU9n+dxQpJLnImm/ucVz7jU04e5NmE8nXVqiSlVP9kdlpP5gOuHQsy0lFLk3pKnbt73yaKw/6rAxPP9Q13DpFm5wSYOAmGCxMBGlEMDI8PG8gHTMRwMoGxNPNZm6y+XNGiZ/XQRKYHzijkPw8ACzOurA7XzXuc0lZ3oTAbN4VMrOGVF13XLHCshQybK/WFOBW0F+vp0cliAbXjfjvJ4URYZVVMiHiXRdmzwvQzWavOuvGxv77fA+0/7+0RFDbpR0nUSk+v6xpzSZaELRHVTgSzyLdJt1pDtt11FaW5efUiSWm8Tmpqq66dt2pS+P5NAvGCnZ4PH0KwswhqFhhqxR2rHIgaJhww+4lHhAJegYFI3IgWT5fLAbmDKttRK8YeHjEsA85FBoixa+zfW8s4r1BswmCeErEp8Ca7hMD24zJZn4mJDb5yMd+0wcDtBWROXBqOAYRhYSpt0B2TjGyZFNvk4AJJGBOUJNKnsR9dOnIaqeKQkPfSiSaU+b3U/VgAb1E+eJR1z4fqiiemlVnM7upyqsl+0vh9VNG5lO3DQK4KtUFOIf3OUfUfI1yisWWzALYFSgRvyduoCIgCnyIc4AYcKFwZgPArBrFZPvcBOgPKypUqAW3XjwfTM7Y6AAkFvAlKiuvqYLAU8SxMDzJFrro3n5ezzjNsMjXkHqWO8GgU9CCFhEiTzfgSUMqALxw3LOd6+uayz6a4zNf//9bjFNbEVog6OEPtzSn/g+17c/COLrD7ZreXZkrattq2PcsueumbQ2pv+vV0UrJ++SzDzcgC1PP8iS8G3SZCIYL7I9AtCgcPlqQuMEFItjsAmTByFGfA8E7FLIJQo5SOsjD8CbQx4PSqipITKFRp+S87dVufTJTVT6U1BU/QvukhUrFiRDoT+lMZB4ikT8sgE2jAniIVeVyIG8TMiF7xVS0EIfa2mJ+G0gyfVJxlQ+BM1Tczni/xjc6Do/+AKDItwIL3NSOp2o9CQ9yHnK7WLaNK8IbL+SBUTxlfFFiezMSvdLSrAyHpd/VRSGG2DSVFe3404B/X1kNku1mGtJ6BbeeBDIx8CiAKM4bnyC2ARfXVJxDCFjlPdxzxaB8EwECpSOoKJE8YhCWZuIQdiFdGtcj1YGwdvJbbc5kX9iEEUPSLcga96QxgZNFuiTSJCBQ3kVgPSwAMTpDUXjMcoCiNw4CRfgEnD08xs4qk/EZLguVYAiieSl/E0UJCuKW/7qNSHftfb3goD0yvoOvXZiv01FucESX/qL9px2fi6QlT+YbubQ+a/f2dhf9WC+V1ZWjtmmM/VuRTZFFUSk5RyKQln4oF0OiBRfItlXML0yKIA6CY4DqBSkVRDmaSmSkwBQFQBxLRGlMy6FcFitRg3yKmK0XJNal1fp35o+b14aWfvX9YL7Zbncm6t9ekOPxElxBQnM0WUAMqKqRJBHFscQhqJwMA9FAV5MMnwJlJcbfAMTgTohiUgyV7TDe0ON7RaPRyfW1DdSS9L9c91eP0yhKv3mWB79xpwZZ5PiAU9orbLnnMH3/UH8z0u2cYK/bOn7okFVSBcQCxDF4MvTurAAuAib8D58TMIw/tNnlE8HUEoggtp5xFciHSn4sDrlC1qQzQSrGir3OLujI4nHA961acb1HRisXLQ3QhpaShTw9x9lIsfyCKcT5Ak/D8QArQ0gNx8+u24fc1WKAIhjhPTLaxobQ/yskPT227ersm+da9s2dWa9pXq84deF5LcxZUPbNiZZ4dJs871L27OOdr2Q3VPf/+ctVYXjtP6Sx3R13VWRTe8yPBrB1NEiE0BSoFIywAh9guoQ7ggfVh0mWndP5BEUD6QjoGMqJqBQLoinYjwFDQDaiBGn9kAKWuIVB525bFnRfrsE1SqoS1SEZlNNVTtJYXIgCQNtVcBRB7FiWZhq+gh7AKkLKXoIu0yCELOWYCxJ8iyqcd2a6qR5JB4X1I3xpL0lYR6hR6KUddVnhu9zdltBGW5E4SyrjUhW2CSmG7rbdkylQvcuLCyn/1v6dZHYxSMd7/gqRaVUspMigFdM1sjB+J0GGFlxWJF4JJegOjKeyAAZ33cTlwq9gpoRYTZKvDZ0gV4X0rWFQp1IuNh1Z5zd3l4SL2NzffuCmnBc8WHbqqaMLlEaILRAURUTTAiNZaaqgniazptafI9o3EvkQVgsIx9+FqgM6YJ02yQ9lSjoTnkQoCZB6iKJLFrd2rYsWhH7WV/IobdlSL0toC/yf/2AH7fIsnyrLNsH5AXVF4VuRBmXR0ccs2VAV9YTqweRDwWSJJ0ynk26ppEEJTFldBnIkViNXEy6XFIAQh/luwIKhTuP4CMt7woy8LB8JJ6eIgnZYY3mWcm/nelYN/P9YKPwmDF3LaFcEFRUUhaN47NTiIJUDELkB4hZvwMkcGRBJEFYPmQ6PBrd/fcNhTu873x75iHkZCYbMNeqpl9fs/vZJbEsKAoI198N/32SSfk3qYpRueLd+7/739jCha6unLDjtiT/eQQsn8hkMZEKCGfJ5Po+hXCE0IU1g6qqsH1SnvImDtURoLVCY+D9l1jdeAeVnzMxSLOKRospaG2vrS351/PQrM1ypyxZYq7W9Ctac2kAT4E0AwxJRDL2Z7AsJEQQhrc8Meh8hPKyhMAEE+7NHFHc0ElyTAp3rpmBqII44ecu0VWhtnYkWkS06taCMNmMQtfq02Zk7OssO0y5sDWbVGe7jnt5X5f95fKaRowIj852vDvSzZJu2hSCNdNwdKABgIAiWZiGGlAlFweDmkfEJPM8k+NAbPkk+KxEPrblbRxTYOZFsk9kIL3kEjYlQtQcqPRxLHLYRZv5S9g0QD4r49F7bchH8VxIhYjPVfk9WjSfWEYC7fAwk/AQ8IVCAeQtkF4CCPm7lOFQlFKmRQZmJONkOv76uro+P7zv+uDJA61c+54+5sFabMS1o/Y8H9BHxUrAlQwIWRbtoeAy9KOy+F+zr+X7QtFWSfeOkb4pImYKB8guBmufZABPYErkw+7xRgLwlGcvcM9E8DnOQywTp5MQZ/HoreuEPRmoFlEQEEmYi3Via3C5kC65qLm5qD8ahOoV3f12eevCZY7ziGUYxNPxTghIwY6L71L+PJCPcLhSbAm7QSkhQgCyGmlkZy0K6TKprk3xnEnVudR51McfM9v8Ky2kS8KoepWyakktDVgWfdzczS9u0qTTHUmrPj+wvcnzX38gvvklrT/n3Xp0+njHOr4BpkuQTSRcCjBKbw4RQBgXUCOMrsAeMRmaQkmPaJHnvbLaTl1NQ+STGNbwu/9gBOrSQ6TpCplplzSAUEf7NRDPEvj4RsNgp2HmgCjIyycpf4ThkIK5a7VCNExXqc6lM66qrY1xmr6g9LwnDhC+vUfa8tyEV/Gb+snTS+qMtqRAyAIf940jH/f8YG7EkK/i+76k62pqdm2wzBs1K0WBhTUMt15sPgcRAIb89RzXhTUlhjSlAcAW3w+WR2P8Shobz81nMIByXtDc/NZKRXmjE+YuY7lUEQpTVFJJwh+LmEXN008Fsw0ZgxfPJDw84B1SQwji19hck9AvDlW6RBWWdVZfNT/IdVzN76sGRuz3o75xXL98Z7CntrBsenreP89E5EpZ+N9Y/NqdffaT+fxa1Ham9PjISERomC4qukYBOp8AJIHtzM0hVrBKPY5DC4dcWNasIihFMiWM6KU/S7Qu7B/h9R/XdDz+SzsQFMYOs53NYoruoDI+i5gYbBAz8ajEhJBzMk0AAArsSURBVMkD8dTVgfxzsKAyABlG6ijpFAUIG83gitsp/+YfYjffWR8+fJST69pJ0SLv20q0oMucza2ltLkZC5lvwu6HrvBJulLXteNXvf04902v2Q1PuldXZtINOpRDOA5l8r/QK7BxwFAijNeb7gvUqtVKksD6L+sFlNV0WqmprYnq2A14NOTcxatXP+uGQoFHAvIkimoqBigii4jY6gXw82CE4IBVABLqB9lpQiMXCTw8zyF1BOvJCqy11aqqXv3yQnbBP0aZudTvPCGRL0V+PmHnaf1+MI8m/h8HKfyfuJKIGPaJPNvz9Z1kxT6qtxX6fcOIY+pd68wIpkKVGHIZ1SHsavK/KSOogthM4p3UWDREGfIoEq2gZVmTPomFTzp91apsb+s8UPOvymXOzshEvPW4xnYoqRClVClv9Rh4Np7ZrHWBQhLIxbmQjz5xKMgDVpYVMr0M1cc1qpacn/VGDtnM8j8KXR6bJePOYbsc80RvyipkXhZHIcvf7LLFtGmwLfrR5Fp7L55zL/+Hsc0q68rRo8c1JLoerBA+hVgBXDtfjozRmmejfMMjNANqU30fmRNpqBsUrSVnkhOrfOSC1tZnET1kXdYaeedqrIlFLLz2zSFJIV9AzXAkAZwRDB57a2cgvpw/WzRdC3FII8uUxva4j8V2gBmLls1+/bdjqnffHGG6y54/RfjWEaYnlkXrR/x6c8ooVh60vFisNp3P6EnfXeg43gvhuParL+Xe6Nu6VNdvRgWB0GEFbfLxJ4inPbbrkyTJ5G+AXICVyRMSfZlIEhSWCQf8RAlMRZeH9Qs3umKDNOHZtMBapSpXZHwIBpaOTaDsCpKBPoVHrYDyHykQONIJSOBsR8XZIcvYQhhLauLBUXKJanyV6tpzl+QzbMIl+Z8XarKdLb9RFEXoFcN+WTPh0BWbkL3oSUsahCyNkcv1v6Lv1PYPZk/j+02hP25RM32UZR1Xa1tkYNojkfjsT+aeBiQD8nC2t36SJCImgdH5/1BApIA8jPYrZbr1kpaWQfNy9qbI+ctpM7XV9yUgFxm7o0YgQfaCDCRS8sAj9AHkBrnLGBgl4ZDEPtAnhExIgnsilYiijqBGlw6/bsSIrXG70U44uTuDIKjIudLsinEH37/RGfspodRPfDeaLU9LTSl8vmVn9l/27p9HbGzGGxsaxo5e2n7jFqZHNTibirgeaZ5HOgl0sCAZcZIfwCfE9EQBnv+XgFjqJhEElPMJUyiJujTtIip/8hI4f8WKBQuzqVsDTC91bNOEsNpT86ALiH+JnL9hzwBkkiBDgVwSgMh9Ige4YYLUNfTPME+hqvbUTxG7US63aM4Pc3ZqsiuFXlWjjRudb6MKL1Cikgcht3vsTt/tygXeFbJHGz01GZYxr9guUiHYAnKfYnaDbg6IVx+8W2eh5zHQIg7TSTBZ+7znMG+nfz6diemoa8RotSRdftEgfzUNItokp9bU3NeB2YcDIPoAFMvNQwn+OuIwZqjExxTsM/mQpw+N9GUiB7MLH1MQFSCtM8I/vmL0dtsia48uWPh2RWdbc5Okq44aqzmnZsLkkp6GdjcGTe4OlrY/ftIPlunRyrfXvP/CBr9zduf40SeFyDsmZecorcuUUAWlFIVSmkJdukqJsEYZQyUTW+gW4m1ZofWTimdryVFU6iZX5TLCNA+KtjSs3Vfa0it+7X7U3v7mKlnMXQP5t+NcNompaZo0ypKepxTWgSlJUAaDYY4Jk9Ac4kyAj38IOaFLOG8lyqpEtp+jqgrpRz21AtNP0Z5ufUDoWlWstvHm+NjJH/eUvpSeDRgQstBqPkg9kHVN4+NXHl3vtDQgErbjH9gm5L+tMEKz/qUoD72p6X9+21AffFsDqcqDiHvwfVl/8D1Ff/BdTX/wX6oK0h98V1X/9K6qg/7rv6Nof3pHUUDan/6lKSAdhHtVQ3rlofej6oWXJJMl8z8jqIQ+8+uqz/93XJ/5fkVo5kex6MPz4vGH/hOreWge6AOE/1URf/ijePxhxM/8JBab+Wk0NvPjcCXClbPmVUT+8nE89MiSWOQpb0zjP0IN1V+fOXWq9lXNAwAle+nrl+Ycc594XcM9+vA9fvVV6Uo1bkCBkNeHo3Z6e2asUt1l2XqAiEE1mL5sxYmnpBLfPSqVmHZixjz25Ix53Knp3PE/Av04nTn+R8n08aem19IpmczxP8jlQJnjT87lTjg5lwF9tX9SJnfCSZk0KHfCDzLp409PJI79TUfiD6Xauf1dr8tWrHjzjOaOo3+wJnn0MYnOY45Orjn26OSqY48BHZ/oOPakjsQxx3cmjzmuM3n01GTn0VMTa44+rnPN0Se0rZn2g+aOqSc1dxx1TEvLt4/6YN5+J7/wjwOnzZplf7lNwfz5urv8raszua4TR4xuvD884pvnfjlNqd8PKBCyMIVo8m3H+kDTtUl8X6ahK4HW1taoqdrXJrtSR8Wra99wAulaIQQvOweUUAYcCFm62KhZIvToh8te+/vhy199NcRxZRpaEgiCt9UYJY/qyiQP1WuGvy5Hai8yGiYNyPd1ByQIWd0att97kVYRWxTRraOCOXMUjusdlXMPFAkEwXw9t0I/TLjOt8MVVa9r4fhVIjq2eaDU/8v1HLAg5IY0bDPpIx89khsW3vWjj2Z+5aKd05Vp8EgAmzCqudrfNZDlwwMhZeMVlXdoVY3vDeQWDmgQYv4f1Owy+W2h6sZwd4vd0EEDuj0DWZGKVXerbcUYL6CTFcUQihG+V8SG/b1YvAvFRypUwcUqF0D0jPGfvlxVU9uy5pMPdy4W3zKf4ksgSLRumfPsnzhC1oQeulmtGvWP4tei7zkOeBCySISY5onG8Z9aQXbxyg8+GMVxZRpcEggyXbvkfP8wWZJjWij0V61ieC9+u6e0ZDMoQNgt0sZtdmsf8bWvrShv1HRLZHD4gd25gxPYe8lCMkIVsVmRqpGPDo6WrW3FoAIhNwnT00BMnuyW14csjYFPZlfLeCdnb+85XpIkabZq1Dw/8Fv1xRYMOhB2Nw9g9OeUjy66xTEg/WD58lAul220Xa/FqHQf0uO1A+Z90E0R+KAFIQthMiwi+2UaoBJobLQrh9Eb0ZoRzwkxKjdAW7HBag9qEG6w9YVOUC6/VxLAbMYTYqzZq0IGQOYyCAdAJ5WrOLglUAbh4O7fcusGgATKIBwAnVSu4uCWQBmEg7t/y60rlgR6wacMwl4Ir5y1LIG+kEAZhH0hxXIZZQn0QgJlEPZCeOWsZQn0hQTKIOwLKZbLKEugFxIog7AXwuuPrGWeg08CZRAOvj4tt2iASaAMwgHWYeXqDj4JlEE4+Pq03KIBJoEyCAdYh5WrO/gksD4QDr6WlltUlkCJSqAMwhLtmHK1ho4EyiAcOn1dbmmJSqAMwhLtmHK1ho4EyiAcOn29vpaW4/tZAmUQ9nMHlNmXJVAGYVkHyhLoZwmUQdjPHVBmX5ZAGYRlHShLoJ8lUEQQ9nNLy+zLEihRCZRBWKIdU67W0JFAGYRDp6/LLS1RCZRBWKIdU67W0JFAGYRDp6+L2NIyq02RQBmEmyKtctqyBAoggTIICyDUcpFlCWyKBMog3BRpldOWJVAACZRBWAChlossS2BTJDCwQbgpLS2nLUugRCVQBmGJdky5WkNHAmUQDp2+Lre0RCVQBmGJdky5WkNHAmUQDp2+HtgtHcS1L4NwEHduuWkDQwJlEA6MfirXchBL4P8DAAD//6nvXpwAAAAGSURBVAMAAmGK34J+vXYAAAAASUVORK5CYII=" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-card); padding: 2px; background: white;" alt="Aurora Logo">
-                <div class="title-area">
-                    <h1>⚡ Admin Dashboard</h1>
-                    <p>Manage Teaching Staff & Credentials</p>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-wrapper">
+                    <div class="logo-orbit-ring"></div>
+                    <img src="/logo.png" class="logo-img" alt="Aurora Logo">
+                </div>
+                <div class="brand-text">
+                    <h2>AURORA</h2>
+                    <span>Admin Portal</span>
                 </div>
             </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <button class="logout-btn" onclick="downloadPcApp()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;" title="Download PC App">🖥️ Download PC App</button>
-                <button class="logout-btn" onclick="downloadPhoneApp()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;" title="Phone Download">📱 Phone Download</button>
-                <button id="themeToggle" class="logout-btn" style="padding: 0.6rem 0.8rem; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1rem;" title="Toggle Dark/Light Mode">🌓</button>
-                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            
+            <nav class="sidebar-nav">
+                <a href="#stats-section" class="sidebar-link active" onclick="scrollToSection('stats-section', this)">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Dashboard Stats</span>
+                </a>
+                <a href="#add-staff-section" class="sidebar-link" onclick="scrollToSection('add-staff-section', this)">
+                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    <span>Add Teaching Staff</span>
+                </a>
+                <a href="#registered-staff-section" class="sidebar-link" onclick="scrollToSection('registered-staff-section', this)">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Registered Staff</span>
+                </a>
+                <a href="#attendance-logs-section" class="sidebar-link" onclick="scrollToSection('attendance-logs-section', this)">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Attendance Logs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                ✦ <span>Made by k.thirulingeshwar.DECE</span> ✦
+                <div style="font-size:0.7rem; opacity:0.6; margin-top:4px;">Version 0.75</div>
             </div>
-        </div>
+        </aside>
 
-        <div class="glass-card">
-            <h2 style="margin-bottom: 1.5rem;">📝 Add New Teaching Staff</h2>
-            <form id="addStaffForm">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem;">
-                    <div class="form-group"><label>📛 Full Name *</label><input type="text" id="fullName" required placeholder="Prof. Aditya Sharma"></div>
-                    <div class="form-group"><label>🏫 Class / Course *</label><input type="text" id="className" required placeholder="12th Grade Mathematics"></div>
-                    <div class="form-group"><label>🌿 Branch *</label><input type="text" id="branch" required placeholder="Computer Science"></div>
-                    <div class="form-group"><label>📞 Phone Number *</label><input type="tel" id="phone" required placeholder="+91 9876543210"></div>
-                    <div class="form-group"><label>📧 Email</label><input type="email" id="email" placeholder="staff@institute.edu"></div>
-                    <div class="form-group"><label>⏰ Incoming Time *</label><input type="time" id="startTime" value="10:00" required></div>
-                    <div class="form-group"><label>⏰ Outgoing Time *</label><input type="time" id="endTime" value="20:00" required></div>
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="top-header">
+                <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                
+                <div class="header-search-container">
+                    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="globalHeaderSearch" placeholder="Search staff members... (Ctrl+K)">
                 </div>
-                <div class="password-info">
-                    💡 <strong>Username:</strong> name lowercase with underscores<br>
-                    💡 <strong>Password:</strong> First half of name + 3 digits
+                
+                <div class="header-actions">
+                    <button class="header-btn pc-btn" onclick="downloadPcApp()" title="Download PC App">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        <span>PC App</span>
+                    </button>
+                    <button class="header-btn phone-btn" onclick="downloadPhoneApp()" title="Download Phone App">
+                        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                        <span>Phone App</span>
+                    </button>
+                    <button id="themeToggle" class="header-btn theme-btn" title="Toggle Theme">🌓</button>
+                    <button class="header-btn logout-btn" onclick="logout()" title="Logout">
+                        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Logout</span>
+                    </button>
                 </div>
-                <button type="submit" class="btn-submit" style="margin-top: 1.5rem;">➕ Add Staff Member</button>
-            </form>
-            <div id="addResult" style="margin-top: 1rem;"></div>
-        </div>
+            </header>
 
-        <div class="glass-card">
-            <h2 style="margin-bottom: 1.5rem;">👥 Registered Staff Members</h2>
-            <div style="overflow-x: auto;">
-                <table class="staff-table">
-                    <thead><tr><th>Full Name</th><th>Class</th><th>Branch</th><th>Phone</th><th>Timing</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead>
-                    <tbody id="staffTableBody"><tr><td colspan="8" style="text-align:center;">Loading staff data...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+            <!-- Main Content -->
+            <main class="content-area">
+                <div class="content-container">
+                    
+                    <!-- Stats Section -->
+                    <section id="stats-section" style="scroll-margin-top: 90px; margin-bottom: var(--spacing-lg);">
+                        <div class="glass-card">
+                            <h2 style="margin-bottom: var(--spacing-md);">📊 System Statistics</h2>
+                            <div class="chart-grid">
+                                <div class="stats-card">
+                                    <h3>👥 Department Distribution</h3>
+                                    <div class="chart-container">
+                                        <canvas id="adminAnalyticsChart"></canvas>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                                    <div class="stats-card" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                        <h3>👥 Total Registered Staff</h3>
+                                        <p class="stats-number" id="totalStaff">0</p>
+                                    </div>
+                                    <div class="stats-card" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                        <h3>🔐 Active Session Count</h3>
+                                        <p class="stats-number" id="activeSessions">1</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <div class="glass-card">
-            <h2 style="margin-bottom: 1.5rem;">🕒 Staff Work Attendance Logs</h2>
-            <div id="adminSelfAttendanceLogsContainer"><div style="text-align: center; color: #666; padding: 1rem;">Syncing cluster data sheets...</div></div>
-        </div>
+                    <!-- Add Staff Section -->
+                    <section id="add-staff-section" style="scroll-margin-top: 90px; margin-bottom: var(--spacing-lg);">
+                        <div class="glass-card">
+                            <h2 style="margin-bottom: var(--spacing-lg);">📝 Add New Teaching Staff</h2>
+                            <form id="addStaffForm">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md);">
+                                    <div class="form-group"><label>📛 Full Name *</label><input type="text" id="fullName" required placeholder="Prof. Aditya Sharma"></div>
+                                    <div class="form-group"><label>🏫 Class / Course *</label><input type="text" id="className" required placeholder="12th Grade Mathematics"></div>
+                                    <div class="form-group"><label>🌿 Branch *</label><input type="text" id="branch" required placeholder="Computer Science"></div>
+                                    <div class="form-group"><label>📞 Phone Number *</label><input type="tel" id="phone" required placeholder="+91 9876543210"></div>
+                                    <div class="form-group"><label>📧 Email</label><input type="email" id="email" placeholder="staff@institute.edu"></div>
+                                    <div class="form-group"><label>⏰ Incoming Time *</label><input type="time" id="startTime" value="10:00" required></div>
+                                    <div class="form-group"><label>⏰ Outgoing Time *</label><input type="time" id="endTime" value="20:00" required></div>
+                                </div>
+                                <div class="password-info">
+                                    💡 <strong>Username:</strong> name lowercase with underscores<br>
+                                    💡 <strong>Password:</strong> First half of name + 3 digits
+                                </div>
+                                <button type="submit" class="btn-submit" style="margin-top: var(--spacing-lg);">➕ Add Staff Member</button>
+                            </form>
+                            <div id="addResult" style="margin-top: var(--spacing-md);"></div>
+                        </div>
+                    </section>
 
-        <div class="glass-card">
-            <h2 style="margin-bottom: 1.2rem;">📊 System Statistics</h2>
-            <div class="grid-2">
-                <div class="stats-card"><h3>👥 Total Staff</h3><p class="stats-number" id="totalStaff">0</p></div>
-                <div class="stats-card"><h3>🔐 Active Sessions</h3><p class="stats-number" id="activeSessions">1</p></div>
-            </div>
-        </div>
-        <div class="credit-footer">
-            ✦ <span>Made by k.thirulingeshwar.DECE</span> ✦
-            <br>
-            <small style="color: var(--text-secondary); opacity: 0.8; font-size: 0.7rem; margin-top: 4px; display: inline-block;">Version 0.75</small>
+                    <!-- Registered Staff Section -->
+                    <section id="registered-staff-section" style="scroll-margin-top: 90px; margin-bottom: var(--spacing-lg);">
+                        <div class="glass-card" style="background: var(--bg-card);">
+                            <h2 style="margin-bottom: var(--spacing-md);">👥 Registered Staff Members</h2>
+                            <div style="overflow-x: auto;">
+                                <table class="staff-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Full Name</th>
+                                            <th>Class</th>
+                                            <th>Branch</th>
+                                            <th>Phone</th>
+                                            <th>Timing</th>
+                                            <th>Username</th>
+                                            <th>Password</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffTableBody">
+                                        <tr><td colspan="8" style="text-align:center;">Loading staff data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Attendance Logs Section -->
+                    <section id="attendance-logs-section" style="scroll-margin-top: 90px; margin-bottom: var(--spacing-lg);">
+                        <div class="glass-card">
+                            <h2 style="margin-bottom: var(--spacing-md);">🕒 Staff Work Attendance Logs</h2>
+                            <div id="adminSelfAttendanceLogsContainer">
+                                <div style="text-align: center; color: var(--text-secondary); padding: var(--spacing-lg);">Syncing cluster data sheets...</div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
         </div>
     </div>
 
@@ -567,21 +1213,21 @@
             </div>
             <form id="editStaffForm">
                 <input type="hidden" id="editStaffId">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem; text-align: left;">
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">📛 Full Name *</label><input type="text" id="editFullName" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">🏫 Class / Course *</label><input type="text" id="editClassName" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">🌿 Branch *</label><input type="text" id="editBranch" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">📞 Phone Number *</label><input type="tel" id="editPhone" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">📧 Email</label><input type="email" id="editEmail" style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">⏰ Incoming Time *</label><input type="time" id="editStartTime" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
-                    <div class="form-group"><label style="display:block; margin-bottom:0.4rem; color:var(--text-secondary);">⏰ Outgoing Time *</label><input type="time" id="editEndTime" required style="width:100%; padding:0.85rem; border-radius:12px; background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white;"></div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); max-height: 400px; overflow-y: auto; padding-right: var(--spacing-xs); text-align: left;">
+                    <div class="form-group"><label>📛 Full Name *</label><input type="text" id="editFullName" required></div>
+                    <div class="form-group"><label>🏫 Class / Course *</label><input type="text" id="editClassName" required></div>
+                    <div class="form-group"><label>🌿 Branch *</label><input type="text" id="editBranch" required></div>
+                    <div class="form-group"><label>📞 Phone Number *</label><input type="tel" id="editPhone" required></div>
+                    <div class="form-group"><label>📧 Email</label><input type="email" id="editEmail"></div>
+                    <div class="form-group"><label>⏰ Incoming Time *</label><input type="time" id="editStartTime" required></div>
+                    <div class="form-group"><label>⏰ Outgoing Time *</label><input type="time" id="editEndTime" required></div>
                 </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
-                    <button type="button" class="logout-btn" onclick="closeEditStaffModal()" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.15); font-weight:600; padding:0.6rem 1.2rem; border-radius:12px;">Cancel</button>
-                    <button type="submit" class="logout-btn" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; font-weight:600; padding:0.6rem 1.2rem; border-radius:12px;">💾 Save Changes</button>
+                <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end; margin-top: var(--spacing-lg);">
+                    <button type="button" class="btn-close-install" onclick="closeEditStaffModal()">Cancel</button>
+                    <button type="submit" class="btn-submit" style="background: var(--primary);">💾 Save Changes</button>
                 </div>
             </form>
-            <div id="editResult" style="margin-top: 1rem;"></div>
+            <div id="editResult" style="margin-top: var(--spacing-md);"></div>
         </div>
     </div>
 
@@ -596,7 +1242,7 @@
                 </div>
             </div>
             <div class="install-body">
-                <p style="margin-bottom: 1.2rem; font-size: 0.9rem; color: #86868b; line-height: 1.45; text-align: left;">Add this application directly to your mobile phone home screen. It will launch in full-screen standalone mode with the Aurora logo icon.</p>
+                <p style="margin-bottom: var(--spacing-md); font-size: 0.9rem; color: var(--text-secondary); line-height: 1.45; text-align: left;">Add this application directly to your mobile phone home screen. It will launch in full-screen standalone mode with the Aurora logo icon.</p>
                 <div class="install-instructions">
                     <div class="instruction-step">
                         <div class="step-num">1</div>
@@ -608,7 +1254,7 @@
                     </div>
                 </div>
             </div>
-            <div class="install-footer">
+            <div class="install-footer" style="display: flex; justify-content: flex-end;">
                 <button class="btn-close-install" onclick="closeInstallModal()">Got it</button>
             </div>
         </div>
@@ -624,6 +1270,51 @@
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+            if (window.myAdminChart) {
+                initAnalyticsChart();
+            }
+        });
+
+        // Sidebar Collapse control
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active-sidebar');
+        }
+
+        // Sidebar link navigation & active trigger
+        function scrollToSection(sectionId, element) {
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+            element.classList.add('active');
+            
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Hide active sidebar drawer on mobile
+            document.getElementById('sidebar').classList.remove('active-sidebar');
+        }
+
+        // Global search filtering row trigger
+        document.getElementById('globalHeaderSearch').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#staffTableBody tr');
+            rows.forEach(row => {
+                if (row.cells.length < 8) return; // Ignore skeleton loader row or "No staff members" message
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Keyboard Shortcut Ctrl+K
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                const globalSearch = document.getElementById('globalHeaderSearch');
+                if (globalSearch) {
+                    globalSearch.focus();
+                    globalSearch.select();
+                }
+            }
         });
 
         let staffList = [];
@@ -633,16 +1324,66 @@
                 if (!response.ok) { window.location.href = '/login'; return false; }
                 const data = await response.json();
                 if (data.user_type !== 'admin') { window.location.href = '/login'; return false; }
+                
+                // Show welcome overlay if just logged in
+                if (sessionStorage.getItem('justLoggedIn') === 'true') {
+                    sessionStorage.removeItem('justLoggedIn');
+                    const welcomeOverlay = document.getElementById('welcomeOverlay');
+                    if (welcomeOverlay) {
+                        welcomeOverlay.style.display = 'flex';
+                        setTimeout(() => {
+                            welcomeOverlay.style.opacity = '0';
+                            welcomeOverlay.style.transform = 'translateY(-30px)';
+                            setTimeout(() => {
+                                welcomeOverlay.style.display = 'none';
+                            }, 500);
+                        }, 2200);
+                    }
+                }
+                
                 return true;
             } catch (error) { window.location.href = '/login'; return false; }
         }
         async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/login'; }
+
+        // Skeletons rendering
+        function showSkeletons() {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = Array(3).fill(`
+                <tr class="skeleton-row">
+                    <td><div class="skeleton-bar" style="width: 80%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 70%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 75%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 85%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 60%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 50%;"></div></td>
+                    <td><div class="skeleton-bar" style="width: 95%;"></div></td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('adminSelfAttendanceLogsContainer').innerHTML = `
+                <div class="skeleton-card" style="padding: var(--spacing-lg); background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-card);">
+                    <div class="skeleton-bar" style="width: 30%; height: 20px; margin-bottom: var(--spacing-sm);"></div>
+                    <div class="skeleton-bar" style="width: 100%; height: 50px;"></div>
+                </div>
+            `;
+        }
+
         async function loadStaff() {
+            showSkeletons();
             try {
                 const response = await fetch('/api/staff');
-                if (response.ok) { staffList = await response.json(); renderStaffTable(); document.getElementById('totalStaff').innerText = staffList.length; await renderAdminStaffLogs(); }
+                if (response.ok) { 
+                    staffList = await response.json(); 
+                    renderStaffTable(); 
+                    document.getElementById('totalStaff').innerText = staffList.length; 
+                    await renderAdminStaffLogs();
+                    initAnalyticsChart();
+                }
             } catch (error) { console.error(error); }
         }
+
         function renderStaffTable() {
             const tbody = document.getElementById('staffTableBody');
             if (staffList.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No staff members found</td></tr>'; return; }
@@ -654,14 +1395,74 @@
                     <td data-label="Phone">${escapeHtml(staff.phone)}</td>
                     <td data-label="Timing">⏱️ ${formatTimeForDisplay(staff.startTime || '10:00')} - ${formatTimeForDisplay(staff.endTime || '20:00')}</td>
                     <td data-label="Username"><code>${escapeHtml(staff.username)}</code></td>
-                    <td data-label="Password"><code style="color:#ff5100;">${escapeHtml(staff.password)}</code></td>
+                    <td data-label="Password"><code style="color:var(--primary);">${escapeHtml(staff.password)}</code></td>
                     <td data-label="Actions" class="action-group">
-                        <button class="action-btn" onclick="openEditStaffModal('${staff.staffId}')" style="background:rgba(59,130,246,0.1); color:#3b82f6; border-color:rgba(59,130,246,0.3); padding:0.4rem 0.8rem; border-radius:2rem; font-weight:600; font-size:0.85rem;">✏️ Edit</button>
+                        <button class="open-staff-btn" onclick="openEditStaffModal('${staff.staffId}')" style="background:rgba(59,130,246,0.1); color:#3b82f6; border-color:rgba(59,130,246,0.3);">✏️ Edit</button>
                         <button class="open-staff-btn" onclick="openStaffPortal('${staff.staffId}', '${escapeHtml(staff.username)}', '${escapeHtml(staff.password)}', '${escapeHtml(staff.fullName)}')">🔓 Impersonate</button>
                         <button class="action-btn" onclick="deleteStaff('${staff.staffId}')">🗑️ Delete</button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // Chart rendering
+        function initAnalyticsChart() {
+            const ctx = document.getElementById('adminAnalyticsChart');
+            if (!ctx) return;
+
+            const branchCounts = {};
+            staffList.forEach(s => {
+                const br = s.branch || 'General';
+                branchCounts[br] = (branchCounts[br] || 0) + 1;
+            });
+
+            const labels = Object.keys(branchCounts);
+            const dataCounts = Object.values(branchCounts);
+
+            if (labels.length === 0) {
+                labels.push('CS', 'Math', 'Others');
+                dataCounts.push(3, 2, 1);
+            }
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const tickColor = isDark ? '#94A3B8' : '#64748B';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.05)';
+
+            if (window.myAdminChart) {
+                window.myAdminChart.destroy();
+            }
+
+            window.myAdminChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataCounts,
+                        backgroundColor: 'rgba(255, 107, 0, 0.85)',
+                        hoverBackgroundColor: '#FF8533',
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: gridColor },
+                            ticks: { color: tickColor, font: { family: 'Inter', size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: tickColor, font: { family: 'Inter', size: 11 } }
+                        }
+                    }
+                }
+            });
         }
 
         async function renderAdminStaffLogs() {
@@ -670,7 +1471,7 @@
                 const response = await fetch('/api/admin/all_staff_attendance');
                 if (!response.ok) { container.innerHTML = '<div>Read failure</div>'; return; }
                 const allLogs = await response.json();
-                if (allLogs.length === 0) { container.innerHTML = '<div style="text-align: center; color: #86868b; padding: 2rem;">No logs registered yet.</div>'; return; }
+                if (allLogs.length === 0) { container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logs registered yet.</div>'; return; }
 
                 const groupedLogs = {};
                 allLogs.forEach(log => { if (!groupedLogs[log.staffName]) groupedLogs[log.staffName] = []; groupedLogs[log.staffName].push(log); });
@@ -679,18 +1480,18 @@
                 for (const staffName in groupedLogs) {
                     let rowsHtml = groupedLogs[staffName].map(l => `
                         <tr>
-                            <td data-label="Date" style="padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border-card);"><strong>📅 ${l.date}</strong></td>
-                            <td data-label="In Time" style="padding: 0.6rem; text-align: center; border-bottom: 1px solid var(--border-card);">${l.inTime}</td>
-                            <td data-label="Out Time" style="padding: 0.6rem; text-align: center; border-bottom: 1px solid var(--border-card);">${l.outTime}</td>
-                            <td data-label="Status" style="padding: 0.6rem; text-align: center; border-bottom: 1px solid var(--border-card);"><span class="badge-present">Present</span></td>
-                            <td data-label="Action" style="padding: 0.6rem; text-align: right; border-bottom: 1px solid var(--border-card);"><button class="action-btn" onclick="deleteServerStaffLog('${l.id}')">🗑️</button></td>
+                            <td data-label="Date"><strong>📅 ${l.date}</strong></td>
+                            <td data-label="In Time">${l.inTime}</td>
+                            <td data-label="Out Time">${l.outTime}</td>
+                            <td data-label="Status"><span class="badge-present">Present</span></td>
+                            <td data-label="Action" style="text-align: right;"><button class="action-btn" onclick="deleteServerStaffLog('${l.id}')">🗑️</button></td>
                         </tr>
                     `).join('');
 
                     combinedHtml += `
                         <div class="staff-log-section">
-                            <h4 style="margin-bottom:0.8rem;">👤 Instructor: ${escapeHtml(staffName)}</h4>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <h4 style="margin-bottom:var(--spacing-sm);">👤 Instructor: ${escapeHtml(staffName)}</h4>
+                            <table class="staff-table" style="margin-top:0;">
                                 <thead><tr><th style="text-align:left;">Date</th><th>In</th><th>Out</th><th>Status</th><th>Drop</th></tr></thead>
                                 <tbody>${rowsHtml}</tbody>
                             </table>
@@ -719,29 +1520,47 @@
                 else { hideLoading(); window.open(`/login?staff_username=${encodeURIComponent(username)}&staff_password=${encodeURIComponent(password)}&auto_login=1`, '_blank'); }
             } catch (error) { hideLoading(); }
         }
+
         function showLoading(m) {
             let overlay = document.getElementById('loadingOverlay') || document.createElement('div');
             overlay.id = 'loadingOverlay'; overlay.className = 'loading-overlay';
             overlay.innerHTML = `<div class="loading-spinner"></div><div class="loading-text">${m}</div>`;
             document.body.appendChild(overlay);
         }
+
         function hideLoading() { const o = document.getElementById('loadingOverlay'); if (o) o.style.display = 'none'; }
+
         async function deleteStaff(staffId) {
             if (confirm('Delete staff member and completely wipe all associated data records?')) {
                 const response = await fetch(`/api/staff/${staffId}`, { method: 'DELETE' });
                 if (response.ok) { showMessage('Staff deleted!', 'success'); await loadStaff(); }
             }
         }
+
         document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const staffData = { fullName: document.getElementById('fullName').value.trim(), className: document.getElementById('className').value.trim(), branch: document.getElementById('branch').value.trim(), phone: document.getElementById('phone').value.trim(), email: document.getElementById('email').value.trim(), startTime: document.getElementById('startTime').value, endTime: document.getElementById('endTime').value };
+            const staffData = { 
+                fullName: document.getElementById('fullName').value.trim(), 
+                className: document.getElementById('className').value.trim(), 
+                branch: document.getElementById('branch').value.trim(), 
+                phone: document.getElementById('phone').value.trim(), 
+                email: document.getElementById('email').value.trim(), 
+                startTime: document.getElementById('startTime').value, 
+                endTime: document.getElementById('endTime').value 
+            };
             const submitBtn = e.target.querySelector('button[type="submit"]'); submitBtn.disabled = true;
             const response = await fetch('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(staffData) });
             const result = await response.json();
-            if (response.ok) { showMessage(`✅ Success!\n👤 Username: ${result.username}\n🔒 Password: ${result.password}`, 'success'); document.getElementById('addStaffForm').reset(); await loadStaff(); }
-            else { showMessage(result.error, 'error'); }
+            if (response.ok) { 
+                showMessage(`✅ Success!\n👤 Username: ${result.username}\n🔒 Password: ${result.password}`, 'success'); 
+                document.getElementById('addStaffForm').reset(); 
+                await loadStaff(); 
+            } else { 
+                showMessage(result.error, 'error'); 
+            }
             submitBtn.disabled = false;
         });
+
         function showMessage(msg, type) { document.getElementById('addResult').innerHTML = `<div class="${type === 'success' ? 'success-message' : 'error-message'}">${msg.replace(/\n/g, '<br>')}</div>`; }
         function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
         function formatTimeForDisplay(time24) {
@@ -752,6 +1571,7 @@
             const h12 = h % 12 || 12;
             return `${h12}:${minutes} ${ampm}`;
         }
+
         function downloadPcApp() {
             const isMobile = /Mobi|Android|iPhone|iPad|Windows Phone/i.test(navigator.userAgent);
             if (isMobile) {
@@ -945,7 +1765,6 @@ exit`;
             });
         }
         
-        // Check if the user just logged in successfully and trigger a welcome notification
         if (sessionStorage.getItem('justLoggedIn') === 'true') {
             sessionStorage.removeItem('justLoggedIn');
             setTimeout(() => {

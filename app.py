@@ -274,6 +274,9 @@ def init_db():
             
         if 'login_logs' not in existing_collections:
             db.create_collection('login_logs')
+
+        if 'no_class_audit_logs' not in existing_collections:
+            db.create_collection('no_class_audit_logs')
         
         print("All collections and indexes ready")
         return True
@@ -715,6 +718,7 @@ def manage_students():
             'isEnded': False,
             'endedDate': None,
             'endedReason': None,
+            'timetable': data.get('timetable', []),
             'createdAt': datetime.now()
         }
         
@@ -918,15 +922,24 @@ def manage_attendance():
                 'date': date,
                 'inTime': record.get('inTime', '09:00'),
                 'outTime': record.get('outTime', '17:00'),
+                'startTime': record.get('startTime'),
+                'endTime': record.get('endTime'),
+                'subject': record.get('subject'),
                 'remarks': record.get('remarks', ''),
                 'createdAt': datetime.now()
             }
             
-            existing = attendance_collection.find_one({
+            query = {
                 'studentId': record.get('studentId'),
                 'date': date,
                 'staffId': staff_id
-            })
+            }
+            if record.get('startTime'):
+                query['startTime'] = record.get('startTime')
+            if record.get('endTime'):
+                query['endTime'] = record.get('endTime')
+            
+            existing = attendance_collection.find_one(query)
             
             if existing:
                 attendance_collection.update_one(
@@ -956,6 +969,261 @@ def manage_attendance():
         
         attendance_collection.delete_one({'id': record_id, 'staffId': staff_id})
         return jsonify({'message': 'Attendance deleted'})
+
+def parse_time_to_minutes(time_str):
+    try:
+        parts = time_str.split(':')
+        return int(parts[0]) * 60 + int(parts[1])
+    except Exception:
+        return 0
+
+@app.route('/api/attendance/no-class', methods=['POST'])
+def save_no_class():
+    if db is None or attendance_collection is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    staff_id = session.get('staff_id')
+    staff_name = session.get('staff_name')
+    
+    data = request.json
+    date = data.get('date')
+    event_type = data.get('type') # 'full' or 'partial'
+    reason = data.get('reason')
+    class_filter = data.get('class', 'All Classes')
+    
+    if not date or not event_type or not reason:
+        return jsonify({'error': 'Missing required fields'}), 400
+        
+    start_time = data.get('startTime')
+    end_time = data.get('endTime')
+    
+    if event_type == 'partial':
+        if not start_time or not end_time:
+            return jsonify({'error': 'Start and end time required for partial interruption'}), 400
+        if parse_time_to_minutes(start_time) >= parse_time_to_minutes(end_time):
+            return jsonify({'error': 'Invalid time range: end time must be greater than start time'}), 400
+            
+    # Load all active students for this staff
+    collection_name = f"staff_students_{staff_id}"
+    if collection_name not in db.list_collection_names():
+        return jsonify({'error': 'No student roster found'}), 404
+        
+    students_col = db[collection_name]
+    query = {'isEnded': {'$ne': True}}
+    if class_filter != 'All Classes':
+        query['class'] = class_filter
+        
+    active_students = list(students_col.find(query))
+    
+    affected_students = []
+    previous_states = []
+    saved_records = []
+    
+    for student in active_students:
+        # Load period-wise timetable
+        timetable = student.get('timetable')
+        if not timetable:
+            # Fallback to single slot
+            timetable = [{
+                'startTime': student.get('classStartTime', '09:00'),
+                'endTime': student.get('classEndTime', '17:00'),
+                'subject': student.get('class', 'Class')
+            }]
+            
+        student_affected_slots = []
+        
+        for slot in timetable:
+            slot_start = slot.get('startTime', '09:00')
+            slot_end = slot.get('endTime', '17:00')
+            slot_subject = slot.get('subject', 'Class')
+            
+            is_affected = False
+            if event_type == 'full':
+                is_affected = True
+            elif event_type == 'partial':
+                s_min = parse_time_to_minutes(slot_start)
+                e_min = parse_time_to_minutes(slot_end)
+                ev_s_min = parse_time_to_minutes(start_time)
+                ev_e_min = parse_time_to_minutes(end_time)
+                
+                is_affected = (s_min < ev_e_min) and (e_min > ev_s_min)
+                
+            if is_affected:
+                student_affected_slots.append(slot)
+                
+                # Fetch existing record for this slot/date/student to store in audit log (conflict resolution)
+                existing_query = {
+                    'studentId': student['id'],
+                    'date': date,
+                    'staffId': staff_id,
+                    'startTime': slot_start,
+                    'endTime': slot_end
+                }
+                existing = attendance_collection.find_one(existing_query)
+                
+                prev_state = {
+                    'studentId': student['id'],
+                    'startTime': slot_start,
+                    'endTime': slot_end,
+                    'status': None
+                }
+                if existing:
+                    prev_state['status'] = existing.get('status')
+                    prev_state['inTime'] = existing.get('inTime')
+                    prev_state['outTime'] = existing.get('outTime')
+                    prev_state['remarks'] = existing.get('remarks')
+                previous_states.append(prev_state)
+                
+                # Save/Update record to "No Class"
+                attendance_record = {
+                    'id': str(uuid.uuid4())[:8],
+                    'studentId': student['id'],
+                    'studentName': student['name'],
+                    'class': student.get('class', ''),
+                    'branch': student.get('branch', ''),
+                    'staffId': staff_id,
+                    'staffName': staff_name,
+                    'status': 'No Class',
+                    'date': date,
+                    'inTime': slot_start,
+                    'outTime': slot_end,
+                    'startTime': slot_start,
+                    'endTime': slot_end,
+                    'subject': slot_subject,
+                    'type': event_type,
+                    'reason': reason,
+                    'remarks': f"No Class ({reason})",
+                    'createdAt': datetime.now()
+                }
+                
+                if existing:
+                    # preserve UUID id
+                    attendance_record['id'] = existing['id']
+                    attendance_collection.update_one(
+                        {'_id': existing['_id']},
+                        {'$set': attendance_record}
+                    )
+                else:
+                    attendance_collection.insert_one(attendance_record)
+                    
+                saved_records.append(attendance_record['id'])
+                
+        if student_affected_slots:
+            affected_students.append(student['name'])
+            
+    # Write Audit Log
+    if affected_students:
+        audit_log = {
+            'staffId': staff_id,
+            'staffName': staff_name,
+            'actionDate': date,
+            'type': event_type,
+            'startTime': start_time if event_type == 'partial' else None,
+            'endTime': end_time if event_type == 'partial' else None,
+            'reason': reason,
+            'targetClass': class_filter,
+            'affectedStudentsCount': len(affected_students),
+            'affectedStudents': affected_students,
+            'previousStates': previous_states,
+            'undone': False,
+            'timestamp': datetime.now()
+        }
+        db['no_class_audit_logs'].insert_one(audit_log)
+        
+    return jsonify({
+        'message': 'No Class attendance saved successfully',
+        'recordsCount': len(saved_records),
+        'affectedStudentsCount': len(affected_students)
+    }), 200
+
+@app.route('/api/attendance/no-class/undo', methods=['POST'])
+def undo_no_class():
+    if db is None or attendance_collection is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    staff_id = session.get('staff_id')
+    
+    # Find the latest audit log entry for this staff that is not already undone
+    latest_log = db['no_class_audit_logs'].find_one(
+        {'staffId': staff_id, 'undone': {'$ne': True}},
+        sort=[('timestamp', -1)]
+    )
+    
+    if not latest_log:
+        return jsonify({'error': 'No recent No Class action to undo'}), 404
+        
+    date = latest_log.get('actionDate')
+    previous_states = latest_log.get('previousStates', [])
+    
+    reverted_count = 0
+    deleted_count = 0
+    
+    for state in previous_states:
+        student_id = state.get('studentId')
+        start_time = state.get('startTime')
+        end_time = state.get('endTime')
+        prev_status = state.get('status')
+        
+        query = {
+            'studentId': student_id,
+            'date': date,
+            'staffId': staff_id,
+            'startTime': start_time,
+            'endTime': end_time
+        }
+        
+        if prev_status is None:
+            # Revert newly created record -> delete it
+            attendance_collection.delete_one(query)
+            deleted_count += 1
+        else:
+            # Revert overwritten record -> restore it
+            attendance_collection.update_one(
+                query,
+                {'$set': {
+                    'status': prev_status,
+                    'inTime': state.get('inTime', '09:00'),
+                    'outTime': state.get('outTime', '17:00'),
+                    'remarks': state.get('remarks', '')
+                }, '$unset': {
+                    'type': "",
+                    'reason': ""
+                }}
+            )
+            reverted_count += 1
+            
+    # Mark the audit log as undone
+    db['no_class_audit_logs'].update_one(
+        {'_id': latest_log['_id']},
+        {'$set': {'undone': True}}
+    )
+    
+    return jsonify({
+        'message': 'Last No Class action undone successfully',
+        'revertedCount': reverted_count,
+        'deletedCount': deleted_count
+    }), 200
+
+@app.route('/api/no-class-audit-logs', methods=['GET'])
+def get_no_class_audit_logs():
+    if db is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    staff_id = session.get('staff_id')
+    user_type = session.get('user_type')
+    
+    query = {}
+    if user_type != 'admin':
+        query['staffId'] = staff_id
+        
+    logs = list(db['no_class_audit_logs'].find(query).sort('timestamp', -1))
+    return jsonify([serialize_doc(l) for l in logs])
 
 @app.route('/api/attendance/<record_id>', methods=['DELETE'])
 def delete_attendance_record(record_id):
