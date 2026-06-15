@@ -66,12 +66,19 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             min-height: 100vh;
             background: var(--bg-body);
             color: var(--text-primary);
             overflow-x: hidden;
             transition: background 0.3s;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* Custom Scrollbars */
@@ -255,6 +262,24 @@
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
+        }
+
+        /* Mobile brand element in top-header */
+        .header-mobile-brand {
+            display: none;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        .header-mobile-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .header-mobile-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
         }
 
         /* Header Command Search input */
@@ -817,16 +842,32 @@
         @keyframes scaleUp { to { transform: scale(1); } }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Sidebar Mobile Actions Container */
+        .sidebar-mobile-actions {
+            display: none;
+            flex-direction: column;
+            gap: var(--spacing-xxs);
+            padding: var(--spacing-sm);
+            border-top: 1px solid var(--sidebar-border);
+        }
+        @media (max-width: 768px) {
+            .sidebar-mobile-actions {
+                display: flex;
+            }
+        }
+
         /* Responsive UI/UX Media Queries */
         @media (max-width: 900px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: 0;
             }
             .sidebar.active-sidebar {
                 transform: translateX(0);
+                width: var(--sidebar-width);
             }
             .main-wrapper {
-                margin-left: 0;
+                margin-left: 0 !important;
             }
             .sidebar-toggle {
                 display: block;
@@ -837,13 +878,85 @@
         }
 
         @media (max-width: 768px) {
+            /* Mobile sidebar fix */
+            .sidebar {
+                position: fixed !important;
+                left: -280px;
+                top: 0;
+                width: 280px;
+                height: 100vh;
+                background: #0F172A !important;
+                z-index: 9999 !important;
+                overflow-y: auto;
+                transition: left 0.3s ease;
+                box-shadow: 8px 0 30px rgba(0,0,0,0.5);
+                transform: none !important;
+                padding: 24px 18px !important;
+            }
+
+            .sidebar.active-sidebar {
+                left: 0;
+                transform: none !important;
+            }
+
+            .sidebar-mobile-actions {
+                display: flex;
+                gap: 14px !important;
+            }
+
             .top-header {
                 padding: 0 var(--spacing-md);
             }
+            .main-wrapper {
+                width: 100% !important;
+                margin-left: 0 !important;
+                position: relative;
+                z-index: 1;
+            }
             .content-area {
-                padding: var(--spacing-lg) var(--spacing-sm);
+                padding: 12px !important;
+                width: 100% !important;
+                overflow-x: hidden;
+                box-sizing: border-box;
             }
             
+            /* Reduced Dashboard Card Padding & Header Sizes */
+            .glass-card, .card, .stats-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                padding: 14px !important;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr !important;
+                gap: var(--spacing-md) !important;
+            }
+            h1 { font-size: 28px !important; }
+            h2 { font-size: 22px !important; }
+            canvas { max-height: 220px !important; }
+            .header-mobile-brand { display: flex !important; }
+
+            /* Declutter Header Actions */
+            .header-actions .pc-btn,
+            .header-actions .phone-btn,
+            .header-actions .theme-btn {
+                display: none !important;
+            }
+
+            /* Resized Buttons & Action Buttons */
+            button, .nav-btn, .header-btn, .logout-btn {
+                min-height: 38px !important;
+                height: 38px !important;
+                padding: 6px 12px !important;
+                font-size: 13px !important;
+            }
+            .action-group button, .open-staff-btn, .action-btn {
+                padding: 6px 10px !important;
+                font-size: 12px !important;
+                height: 34px !important;
+                min-height: 34px !important;
+            }
+
             /* Responsive Staff Table to Cards */
             .staff-table, .staff-table thead, .staff-table tbody, .staff-table th, .staff-table td, .staff-table tr {
                 display: block;
@@ -884,6 +997,7 @@
             .action-group {
                 width: 100%;
                 justify-content: flex-end;
+                margin-top: var(--spacing-xxs);
             }
 
             /* Responsive Logs Table */
@@ -927,6 +1041,38 @@
             .header-search-container {
                 display: none; /* Hide global search in small screens or shrink */
             }
+
+            /* PWA Bottom-Sheet layout */
+            .install-modal {
+                align-items: flex-end !important;
+                padding: 0 !important;
+            }
+            .install-card {
+                max-width: 100% !important;
+                width: 100% !important;
+                border-radius: 24px 24px 0 0 !important;
+                margin-bottom: 0 !important;
+                padding: var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-lg) + 24px + env(safe-area-inset-bottom)) var(--spacing-lg) !important;
+                transform: translateY(100%);
+                animation: slideUpBottomSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            }
+            @keyframes slideUpBottomSheet {
+                to { transform: translateY(0); }
+            }
+        }
+
+        /* Mobile sidebar background overlay */
+        .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
+            display: none;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .mobile-overlay.active {
+            display: block;
         }
 
         /* Welcome Overlay Styling */
@@ -1001,6 +1147,8 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
     <!-- Welcome Overlay Animation -->
     <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
         <div class="welcome-overlay-content">
@@ -1072,6 +1220,19 @@
                 </a>
             </nav>
             
+            <!-- Mobile Actions -->
+            <div class="sidebar-mobile-actions">
+                <button class="sidebar-link mobile-theme-btn" onclick="document.getElementById('themeToggle').click()" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
+                    🌓 <span>Toggle Theme</span>
+                </button>
+                <button class="sidebar-link" onclick="downloadPcApp()" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
+                    🖥️ <span>Download PC App</span>
+                </button>
+                <button class="sidebar-link" onclick="downloadPhoneApp()" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
+                    📱 <span>Download Phone App</span>
+                </button>
+            </div>
+
             <div class="sidebar-footer">
                 ✦ <span>Made by k.thirulingeshwar.DECE</span> ✦
                 <div style="font-size:0.7rem; opacity:0.6; margin-top:4px;">Version 0.75</div>
@@ -1085,6 +1246,11 @@
                 <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
+                
+                <div class="header-mobile-brand">
+                    <img src="/logo.png" class="header-mobile-logo" alt="Aurora Logo">
+                    <span class="header-mobile-title">AURORA</span>
+                </div>
                 
                 <div class="header-search-container">
                     <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1277,8 +1443,25 @@
 
         // Sidebar Collapse control
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.toggle('active-sidebar');
+            if (sidebar.classList.contains('active-sidebar')) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
         }
+
+        // Sidebar collapsible handling when any link or button is clicked
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('mobileOverlay');
+                if (sidebar) sidebar.classList.remove('active-sidebar');
+                if (overlay) overlay.classList.remove('active');
+            });
+        });
 
         // Sidebar link navigation & active trigger
         function scrollToSection(sectionId, element) {
@@ -1291,7 +1474,10 @@
             }
             
             // Hide active sidebar drawer on mobile
-            document.getElementById('sidebar').classList.remove('active-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            if (sidebar) sidebar.classList.remove('active-sidebar');
+            if (overlay) overlay.classList.remove('active');
         }
 
         // Global search filtering row trigger
