@@ -153,6 +153,7 @@
             padding: 2px;
             background: #ffffff;
             z-index: 2;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
         }
 
         .brand-text h2 {
@@ -274,6 +275,8 @@
             width: 28px;
             height: 28px;
             object-fit: contain;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
+            border-radius: 50%;
         }
         .header-mobile-title {
             font-size: 1.1rem;
@@ -842,18 +845,13 @@
         @keyframes scaleUp { to { transform: scale(1); } }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Sidebar Mobile Actions Container */
+        /* Sidebar Actions Container */
         .sidebar-mobile-actions {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: var(--spacing-xxs);
             padding: var(--spacing-sm);
             border-top: 1px solid var(--sidebar-border);
-        }
-        @media (max-width: 768px) {
-            .sidebar-mobile-actions {
-                display: flex;
-            }
         }
 
         /* Responsive UI/UX Media Queries */
@@ -888,7 +886,7 @@
                 background: #0F172A !important;
                 z-index: 9999 !important;
                 overflow-y: auto;
-                transition: left 0.3s ease;
+                transition: transform 0.3s ease, left 0.3s ease;
                 box-shadow: 8px 0 30px rgba(0,0,0,0.5);
                 transform: none !important;
                 padding: 24px 18px !important;
@@ -1120,6 +1118,7 @@
             padding: 3px;
             background: white;
             z-index: 2;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
         }
         .welcome-title {
             font-size: 2rem;
@@ -1161,27 +1160,7 @@
         </div>
     </div>
 
-    <!-- Notification Permission Banner -->
-    <div id="notificationPermissionBanner" style="display: none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; text-align: center; padding: 0.8rem 1.5rem; font-weight: 500; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99998; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.1); align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; transition: all 0.3s ease;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="font-size: 1.1rem;">🔔</span>
-            <span id="notificationPermissionText"><strong>Aurora V.75</strong> requests permission to show desktop notifications for system alerts.</span>
-        </div>
-        <div style="display: flex; gap: 0.8rem; align-items: center;">
-            <button id="enableNotificationsBtn" 
-                    onmouseover="this.style.transform='scale(1.04)';" 
-                    onmouseout="this.style.transform='scale(1)';" 
-                    style="background: linear-gradient(135deg, #FF6B00, #E05E00); color: white; border: none; padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(255, 107, 0, 0.25); outline: none;">
-                Enable
-            </button>
-            <button id="dismissNotificationsBannerBtn" 
-                    onmouseover="this.style.background='rgba(255,255,255,0.15)';" 
-                    onmouseout="this.style.background='rgba(255,255,255,0.08)';" 
-                    style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; outline: none;">
-                Later
-            </button>
-        </div>
-    </div>
+
 
     <div id="dbWarningBanner" style="display: none; background: #ef4444; color: white; text-align: center; padding: 0.8rem; font-weight: 600; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
         ⚠️ Database Offline: Unable to connect to MongoDB Atlas. Please check your internet connection or network firewall (ensure port 27017 is open).
@@ -1196,7 +1175,7 @@
                     <img src="/logo.png" class="logo-img" alt="Aurora Logo">
                 </div>
                 <div class="brand-text">
-                    <h2>AURORA</h2>
+                    <h2>AURORA <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; display: block; margin-top: 2px;">v0.75</span></h2>
                     <span>Admin Portal</span>
                 </div>
             </div>
@@ -1222,9 +1201,6 @@
             
             <!-- Mobile Actions -->
             <div class="sidebar-mobile-actions">
-                <button class="sidebar-link mobile-theme-btn" onclick="document.getElementById('themeToggle').click()" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
-                    🌓 <span>Toggle Theme</span>
-                </button>
                 <button class="sidebar-link" onclick="downloadPcApp()" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">
                     🖥️ <span>Download PC App</span>
                 </button>
@@ -1247,26 +1223,16 @@
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 
-                <div class="header-mobile-brand">
+                <div class="header-mobile-brand" style="display: flex; align-items: center; gap: var(--spacing-xs);">
                     <img src="/logo.png" class="header-mobile-logo" alt="Aurora Logo">
-                    <span class="header-mobile-title">AURORA</span>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <span class="header-mobile-title" style="font-weight: 800; font-size: 1rem; color: var(--text-primary); margin: 0; line-height: 1;">AURORA</span>
+                        <span style="font-size: 0.65rem; opacity: 0.7; font-weight: 500; display: block; margin-top: 2px;">v0.75</span>
+                    </div>
                 </div>
                 
-                <div class="header-search-container">
-                    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="globalHeaderSearch" placeholder="Search staff members... (Ctrl+K)">
-                </div>
                 
                 <div class="header-actions">
-                    <button class="header-btn pc-btn" onclick="downloadPcApp()" title="Download PC App">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                        <span>PC App</span>
-                    </button>
-                    <button class="header-btn phone-btn" onclick="downloadPhoneApp()" title="Download Phone App">
-                        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                        <span>Phone App</span>
-                    </button>
-                    <button id="themeToggle" class="header-btn theme-btn" title="Toggle Theme">🌓</button>
                     <button class="header-btn logout-btn" onclick="logout()" title="Logout">
                         <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         <span>Logout</span>
@@ -1330,7 +1296,12 @@
                     <!-- Registered Staff Section -->
                     <section id="registered-staff-section" style="scroll-margin-top: 90px; margin-bottom: var(--spacing-lg);">
                         <div class="glass-card" style="background: var(--bg-card);">
-                            <h2 style="margin-bottom: var(--spacing-md);">👥 Registered Staff Members</h2>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); flex-wrap: wrap; gap: var(--spacing-sm);">
+                                <h2 style="margin: 0;">👥 Registered Staff Members</h2>
+                                <div class="search-container-inside" style="position: relative; width: 300px; max-width: 100%;">
+                                    <input type="text" id="globalHeaderSearch" placeholder="Search staff members..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--sidebar-border); background: var(--bg-card); color: var(--text-primary); outline: none;">
+                                </div>
+                            </div>
                             <div style="overflow-x: auto;">
                                 <table class="staff-table">
                                     <thead>
@@ -1428,18 +1399,8 @@
 
     <script>
         // Theme initialization
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.documentElement.setAttribute('data-theme', 'dark');
 
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            if (window.myAdminChart) {
-                initAnalyticsChart();
-            }
-        });
 
         // Sidebar Collapse control
         function toggleSidebar() {
@@ -1516,6 +1477,17 @@
                     sessionStorage.removeItem('justLoggedIn');
                     const welcomeOverlay = document.getElementById('welcomeOverlay');
                     if (welcomeOverlay) {
+                        const hour = new Date().getHours();
+                        let greeting = "Good Morning ☀️";
+                        if (hour >= 12 && hour < 17) {
+                            greeting = "Good Afternoon 🌤️";
+                        } else if (hour >= 17 || hour < 4) {
+                            greeting = "Good Evening 🌙";
+                        }
+                        const welcomeSubtitle = welcomeOverlay.querySelector('.welcome-subtitle');
+                        if (welcomeSubtitle) {
+                            welcomeSubtitle.innerHTML = `${greeting}, Admin! Preparing your dashboard...`;
+                        }
                         welcomeOverlay.style.display = 'flex';
                         setTimeout(() => {
                             welcomeOverlay.style.opacity = '0';
@@ -1911,68 +1883,19 @@ exit`;
             }
         });
 
-        function sendSystemNotification(title, message) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.ready.then(registration => {
-                            registration.showNotification(title, {
-                                body: message,
-                                icon: '/logo.png',
-                                badge: '/logo.png',
-                                vibrate: [200, 100, 200]
-                            });
-                        });
-                    } else {
-                        new Notification(title, {
-                            body: message,
-                            icon: '/logo.png'
-                        });
-                    }
-                } catch (e) {
-                    new Notification(title, {
-                        body: message,
-                        icon: '/logo.png'
-                    });
-                }
-            }
-        }
+
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then(reg => {
                         console.log('ServiceWorker registered:', reg);
-                        if ("Notification" in window && Notification.permission === "default") {
-                            Notification.requestPermission();
-                        }
                     })
                     .catch(err => console.log('ServiceWorker registration failed:', err));
             });
         }
         
-        if (sessionStorage.getItem('justLoggedIn') === 'true') {
-            sessionStorage.removeItem('justLoggedIn');
-            setTimeout(() => {
-                if ("Notification" in window) {
-                    if (Notification.permission === "granted") {
-                        sendSystemNotification("🔑 Admin Login Successful", "Welcome back, Admin! Logged in successfully.");
-                    } else if (Notification.permission === "default") {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === "granted") {
-                                sendSystemNotification("🔑 Admin Login Successful", "Welcome back, Admin! Logged in successfully.");
-                            } else {
-                                showMessage("🔔 Notification permission was denied.", "error");
-                            }
-                        });
-                    } else if (Notification.permission === "denied") {
-                        showMessage("🔔 Notifications are blocked. Please enable them in your browser settings.", "error");
-                    }
-                } else {
-                    showMessage("🔔 Web Notifications are not supported by this browser.", "error");
-                }
-            }, 1500);
-        }
+
 
         async function checkDatabaseHealth() {
             try {

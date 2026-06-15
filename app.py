@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from flask_cors import CORS
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import uuid
 import random
@@ -37,197 +37,7 @@ CORS(app)
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '852109867543-exampleclientid.apps.googleusercontent.com')
 
 
-# Firebase Admin SDK initialization wrapped in try-except for safety
-firebase_initialized = False
-try:
-    import firebase_admin
-    from firebase_admin import credentials, messaging
-    firebase_module_available = True
-    
-    cred_path = os.path.join(os.getcwd(), 'firebase-credentials.json')
-    if os.path.exists(cred_path):
-        try:
-            cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred)
-            firebase_initialized = True
-            print("Firebase Admin SDK initialized successfully.")
-        except Exception as e:
-            print(f"Failed to initialize Firebase Admin: {e}")
-    else:
-        print("firebase-credentials.json not found. FCM background push notifications will be simulated.")
-except ImportError:
-    firebase_module_available = False
-    print("firebase-admin library not installed. FCM background push notifications will be simulated.")
 
-def send_fcm_notification(token, title, body):
-    if not firebase_initialized:
-        print(f"[Simulated FCM Push] To: {token[:10]}... | Title: {title} | Body: {body}")
-        return False
-    try:
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title=title,
-                body=body
-            ),
-            token=token
-        )
-        response = messaging.send(message)
-        print(f"Successfully sent FCM message: {response}")
-        return True
-    except Exception as e:
-        print(f"Error sending FCM message: {e}")
-        return False
-
-def send_update_notification_to_all():
-    try:
-        # Check if already sent
-        sent_key = "update_notified_fcm_v0.75"
-        already_sent = db['admin_settings'].find_one({'key': sent_key})
-        if already_sent:
-            return
-            
-        # Get all tokens
-        tokens = []
-        if staff_collection is not None:
-            for staff in staff_collection.find():
-                token = staff.get('fcmToken')
-                if token:
-                    tokens.append(token)
-                    
-        # Also check admin token
-        admin_setting = db['admin_settings'].find_one({'key': 'admin_fcm_token'})
-        if admin_setting:
-            admin_token = admin_setting.get('token')
-            if admin_token:
-                tokens.append(admin_token)
-                
-        if not tokens:
-            return
-            
-        print(f"Sending version update notification to {len(tokens)} devices...")
-        for token in tokens:
-            send_fcm_notification(
-                token,
-                "🚀 Aurora Update",
-                "Aurora V.75 is updated to Version 0.75!"
-            )
-            
-        db['admin_settings'].update_one(
-            {'key': sent_key},
-            {'$set': {'sent': True, 'timestamp': datetime.utcnow()}},
-            upsert=True
-        )
-    except Exception as e:
-        print(f"Error sending update notification to all: {e}")
-
-def check_notifications_loop():
-    # Delay startup check slightly to ensure DB and app are fully initialized
-    time.sleep(10)
-    
-    # Send one-time update notification if not already sent
-    try:
-        if db is not None:
-            send_update_notification_to_all()
-    except Exception as ex:
-        print(f"Startup check_update_notification failed: {ex}")
-        
-    while True:
-        try:
-            # Check every 60 seconds
-            time.sleep(60)
-            
-            if client is None or db is None or staff_collection is None:
-                continue
-                
-            now = datetime.now()
-            today_str = now.strftime('%Y-%m-%d')
-            current_hour = now.hour
-            current_minute = now.minute
-            
-            # 1. Staff Shift Start Reminders
-            staff_list = list(staff_collection.find())
-            for staff in staff_list:
-                fcm_token = staff.get('fcmToken')
-                if not fcm_token:
-                    continue
-                    
-                # Check if they marked attendance today
-                log_today = db['staff_self_attendance'].find_one({
-                    'staffId': staff.get('staffId'),
-                    'date': today_str
-                })
-                if log_today:
-                    continue
-                    
-                # Check if already reminded today
-                reminder_key = f"reminder_staff_{staff.get('staffId')}_{today_str}"
-                already_reminded = db['admin_settings'].find_one({'key': reminder_key})
-                if already_reminded:
-                    continue
-                    
-                start_time = staff.get('startTime', '10:00')
-                try:
-                    sh, sm = map(int, start_time.split(':'))
-                    if current_hour > sh or (current_hour == sh and current_minute >= sm):
-                        send_fcm_notification(
-                            fcm_token,
-                            "⏰ Shift Reminder",
-                            f"Hi {staff.get('fullName', 'Staff')}, it's {start_time}. Don't forget to mark your attendance today!"
-                        )
-                        db['admin_settings'].update_one(
-                            {'key': reminder_key},
-                            {'$set': {'sent': True, 'timestamp': datetime.utcnow()}},
-                            upsert=True
-                        )
-                except Exception as ex:
-                    print(f"Error checking staff timing: {ex}")
-                    
-            # 2. Student Timing Reminders
-            for staff in staff_list:
-                fcm_token = staff.get('fcmToken')
-                if not fcm_token:
-                    continue
-                    
-                staff_id = staff.get('staffId')
-                students_col = db[f"staff_students_{staff_id}"]
-                students = list(students_col.find())
-                
-                for student in students:
-                    student_id = str(student.get('_id'))
-                    
-                    # Check if student marked today
-                    student_marked = db['attendance'].find_one({
-                        'studentId': student_id,
-                        'date': today_str
-                    })
-                    if student_marked:
-                        continue
-                        
-                    # Check if already reminded today for this student
-                    reminder_key = f"reminder_student_{student_id}_{today_str}"
-                    already_reminded = db['admin_settings'].find_one({'key': reminder_key})
-                    if already_reminded:
-                        continue
-                        
-                    start_time = student.get('classStartTime', '09:00')
-                    try:
-                        sh, sm = map(int, start_time.split(':'))
-                        if current_hour > sh or (current_hour == sh and current_minute >= sm):
-                            send_fcm_notification(
-                                fcm_token,
-                                "⏰ Student Attendance",
-                                f"Please mark attendance for {student.get('name')}. Class starts at {start_time}."
-                            )
-                            db['admin_settings'].update_one(
-                                {'key': reminder_key},
-                                {'$set': {'sent': True, 'timestamp': datetime.utcnow()}},
-                                upsert=True
-                            )
-                    except Exception as ex:
-                        print(f"Error checking student timing: {ex}")
-                        
-        except Exception as e:
-            print(f"Error in background notification loop: {e}")
 
 # MongoDB Connection
 MONGO_URI = os.environ.get('MONGO_URI', "mongodb+srv://admin123:admin123@cluster0.slklrau.mongodb.net/?appName=Cluster0")
@@ -292,17 +102,7 @@ def init_db():
 # Initial connection attempt
 init_db()
 
-# Start background notification thread
-notification_thread_started = False
-def start_background_notifications():
-    global notification_thread_started
-    if not notification_thread_started:
-        thread = threading.Thread(target=check_notifications_loop, daemon=True)
-        thread.start()
-        notification_thread_started = True
-        print("Background notification thread started.")
 
-start_background_notifications()
 
 @app.before_request
 def ensure_db_connected():
@@ -1300,11 +1100,11 @@ def staff_self_attendance_route():
         out_time = data.get('outTime', '17:00')
         status = data.get('status', 'Present')
         remarks = data.get('remarks', '')
-        today_str = datetime.now().strftime('%Y-%m-%d')
+        target_date = data.get('date') or datetime.now().strftime('%Y-%m-%d')
 
         existing = staff_self_attendance_collection.find_one({
             'staffId': staff_id,
-            'date': today_str
+            'date': target_date
         })
         
         if existing:
@@ -1324,7 +1124,7 @@ def staff_self_attendance_route():
             record = {
                 'staffId': staff_id,
                 'staffName': staff_name,
-                'date': today_str,
+                'date': target_date,
                 'inTime': in_time,
                 'outTime': out_time,
                 'status': status,
@@ -1408,44 +1208,7 @@ def serve_service_worker():
 def serve_logo():
     return send_from_directory('templates', 'download-removebg-preview.png', mimetype='image/png')
 
-@app.route('/firebase-messaging-sw.js')
-def serve_firebase_sw():
-    return send_from_directory('templates', 'firebase-messaging-sw.js', mimetype='application/javascript')
 
-@app.route('/api/save_fcm_token', methods=['POST'])
-def save_fcm_token():
-    if not session.get('logged_in'):
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    token = data.get('token')
-    if not token:
-        return jsonify({'error': 'Missing token'}), 400
-        
-    user_type = session.get('user_type')
-    if user_type == 'staff' and staff_collection is not None:
-        staff_id = session.get('staff_id')
-        if staff_id:
-            try:
-                staff_collection.update_one(
-                    {'_id': ObjectId(staff_id)},
-                    {'$set': {'fcmToken': token}}
-                )
-                return jsonify({'success': True})
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
-    elif user_type == 'admin':
-        try:
-            db['admin_settings'].update_one(
-                {'key': 'admin_fcm_token'},
-                {'$set': {'token': token}},
-                upsert=True
-            )
-            return jsonify({'success': True})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-            
-    return jsonify({'error': 'Unsupported user type'}), 400
 
 # ==================================================
 # DOWNLOAD APP ENDPOINT
@@ -1457,6 +1220,213 @@ def download_app():
     if not os.path.exists(os.path.join('dist', 'Aurora V.75.exe')):
         return jsonify({'error': 'Application build not found on server'}), 404
     return send_from_directory('dist', 'Aurora V.75.exe', as_attachment=True)
+
+# ==================================================
+# ATTENDANCE CALENDAR ENDPOINT
+# ==================================================
+
+@app.route('/api/calendar-attendance', methods=['GET'])
+def get_calendar_attendance():
+    if db is None or attendance_collection is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    staff_id = session.get('staff_id')
+    user_type = session.get('user_type')
+    
+    # Allow fetching calendar attendance for a specific staff in admin mode if needed
+    target_staff_id = request.args.get('staffId') if user_type == 'admin' else None
+    if not target_staff_id:
+        target_staff_id = staff_id
+        
+    if not target_staff_id:
+        return jsonify({'error': 'Staff ID required'}), 400
+
+    # Get start and end date from query parameters
+    start_date_str = request.args.get('start')
+    end_date_str = request.args.get('end')
+    
+    # Fallback to defaults (e.g. +/- 30 days around today)
+    today = datetime.now()
+    if not start_date_str:
+        start_date_str = (today - timedelta(days=30)).strftime('%Y-%m-%d')
+    if not end_date_str:
+        end_date_str = (today + timedelta(days=30)).strftime('%Y-%m-%d')
+        
+    # Standardize start/end date formats to YYYY-MM-DD
+    try:
+        if 'T' in start_date_str:
+            start_date_str = start_date_str.split('T')[0]
+        if 'T' in end_date_str:
+            end_date_str = end_date_str.split('T')[0]
+            
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    except Exception as e:
+        return jsonify({'error': f'Invalid date format: {str(e)}'}), 400
+
+    # Load all attendance records for this staff in the date range
+    attendance_query = {
+        'staffId': target_staff_id,
+        'date': {'$gte': start_date_str, '$lte': end_date_str}
+    }
+    db_records = list(attendance_collection.find(attendance_query))
+    
+    # We will build a lookup map of actual logged attendance
+    # key: (studentId, date, startTime, endTime) -> record
+    logged_map = {}
+    for r in db_records:
+        s_time = r.get('startTime') or r.get('inTime') or '09:00'
+        e_time = r.get('endTime') or r.get('outTime') or '17:00'
+        # ensure format is HH:MM
+        if len(s_time) > 5: s_time = s_time[:5]
+        if len(e_time) > 5: e_time = e_time[:5]
+        
+        key = (r['studentId'], r['date'], s_time, e_time)
+        logged_map[key] = r
+
+    # Load active students for this staff
+    collection_name = f"staff_students_{target_staff_id}"
+    print(f"CALENDAR-ATTENDANCE: Fetching events for staff {target_staff_id} in range {start_date_str} to {end_date_str}")
+    students_col = db[collection_name]
+    try:
+        active_students = list(students_col.find({'isEnded': {'$ne': True}}))
+        print(f"CALENDAR-ATTENDANCE: Found {len(active_students)} active students in roster '{collection_name}'")
+    except Exception as err:
+        print(f"CALENDAR-ATTENDANCE: Error querying student collection '{collection_name}': {err}")
+        active_students = []
+
+    calendar_events = []
+    today_str = today.strftime('%Y-%m-%d')
+    
+    # Loop through each date in the range
+    curr_date = start_date
+    while curr_date <= end_date:
+        curr_date_str = curr_date.strftime('%Y-%m-%d')
+        weekday = curr_date.strftime('%A')
+        
+        # Check active students who have classes on this weekday
+        for student in active_students:
+            student_days = student.get('days', [])
+            if weekday not in student_days:
+                continue
+                
+            timetable = student.get('timetable') or []
+            if not timetable:
+                timetable = [{
+                    'startTime': student.get('classStartTime') or student.get('inTime') or '09:00',
+                    'endTime': student.get('classEndTime') or student.get('outTime') or '17:00',
+                    'subject': student.get('class') or 'Class'
+                }]
+                
+            for slot in timetable:
+                s_time = slot.get('startTime', '09:00')
+                e_time = slot.get('endTime', '17:00')
+                subject = slot.get('subject', 'Class')
+                
+                if len(s_time) > 5: s_time = s_time[:5]
+                if len(e_time) > 5: e_time = e_time[:5]
+                
+                key = (student['id'], curr_date_str, s_time, e_time)
+                
+                if key in logged_map:
+                    record = logged_map[key]
+                    status = record.get('status', 'Present')
+                    subj = record.get('subject') or subject
+                    calendar_events.append({
+                        'id': record.get('id') or f"{student['id']}_{curr_date_str}_{s_time}",
+                        'studentId': student['id'],
+                        'studentName': student['name'],
+                        'date': curr_date_str,
+                        'startTime': s_time,
+                        'endTime': e_time,
+                        'status': status,
+                        'class': student.get('class', ''),
+                        'subject': subj,
+                        'remarks': record.get('remarks', ''),
+                        'staffName': record.get('staffName', ''),
+                        'title': f"{student['name']} ({subj})",
+                        'extendedProps': {
+                            'studentName': student['name'],
+                            'studentId': student['id'],
+                            'date': curr_date_str,
+                            'startTime': s_time,
+                            'endTime': e_time,
+                            'status': status,
+                            'class': student.get('class', ''),
+                            'subject': subj,
+                            'remarks': record.get('remarks', ''),
+                            'staffName': record.get('staffName', '')
+                        }
+                    })
+                    logged_map.pop(key)
+                else:
+                    # No attendance record exists. Check if date is future or today
+                    if curr_date_str >= today_str:
+                        calendar_events.append({
+                            'id': f"upcoming_{student['id']}_{curr_date_str}_{s_time}",
+                            'studentId': student['id'],
+                            'studentName': student['name'],
+                            'date': curr_date_str,
+                            'startTime': s_time,
+                            'endTime': e_time,
+                            'status': 'Upcoming Class',
+                            'class': student.get('class', ''),
+                            'subject': subject,
+                            'remarks': 'Upcoming Scheduled Class',
+                            'staffName': '',
+                            'title': f"{student['name']} ({subject})",
+                            'extendedProps': {
+                                'studentName': student['name'],
+                                'studentId': student['id'],
+                                'date': curr_date_str,
+                                'startTime': s_time,
+                                'endTime': e_time,
+                                'status': 'Upcoming Class',
+                                'class': student.get('class', ''),
+                                'subject': subject,
+                                'remarks': 'Upcoming Scheduled Class',
+                                'staffName': ''
+                            }
+                        })
+                        
+        curr_date += timedelta(days=1)
+        
+    # Any remaining records in logged_map (e.g. historical records of deleted/ended students)
+    for (student_id, date_str, s_time, e_time), record in logged_map.items():
+        student_name = record.get('studentName', 'Unknown Student')
+        subj = record.get('subject', 'Class')
+        status = record.get('status', 'Present')
+        calendar_events.append({
+            'id': record.get('id') or f"{student_id}_{date_str}_{s_time}",
+            'studentId': student_id,
+            'studentName': student_name,
+            'date': date_str,
+            'startTime': s_time,
+            'endTime': e_time,
+            'status': status,
+            'class': record.get('class', ''),
+            'subject': subj,
+            'remarks': record.get('remarks', ''),
+            'staffName': record.get('staffName', ''),
+            'title': f"{student_name} ({subj})",
+            'extendedProps': {
+                'studentName': student_name,
+                'studentId': student_id,
+                'date': date_str,
+                'startTime': s_time,
+                'endTime': e_time,
+                'status': status,
+                'class': record.get('class', ''),
+                'subject': subj,
+                'remarks': record.get('remarks', ''),
+                'staffName': record.get('staffName', '')
+            }
+        })
+
+    print(f"CALENDAR-ATTENDANCE: Successfully compiled and returning {len(calendar_events)} events.")
+    return jsonify(calendar_events)
 
 # ==================================================
 # HEALTH CHECK

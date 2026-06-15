@@ -8,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <style>
         :root {
             /* Spacing System */
@@ -28,7 +28,7 @@
             --primary-glow: rgba(255, 107, 0, 0.15);
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             
-            --sidebar-width: 260px;
+            --sidebar-width: 240px;
             --header-height: 70px;
             --btn-height: 40px;
             --container-max-width: 1400px;
@@ -167,6 +167,7 @@
             padding: 2px;
             background: #ffffff;
             z-index: 2;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
         }
 
         .brand-text h2 {
@@ -196,7 +197,7 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-md);
             color: var(--text-secondary);
             text-decoration: none;
             background: transparent;
@@ -285,6 +286,8 @@
             width: 28px;
             height: 28px;
             object-fit: contain;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
+            border-radius: 50%;
         }
         .header-mobile-title {
             font-size: 1.1rem;
@@ -403,156 +406,7 @@
             color: white;
         }
 
-        /* Notification bell drawer styles */
-        .notification-area { position: relative; }
-        
-        .notification-bell {
-            cursor: pointer;
-            background: var(--bg-input);
-            border: 1px solid var(--border-card);
-            height: var(--btn-height);
-            padding: 0 var(--spacing-sm);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            transition: all 0.2s;
-        }
-        
-        .notification-bell:hover {
-            background: var(--border-card);
-        }
 
-        .notification-badge {
-            background: var(--primary);
-            color: white;
-            border-radius: 20px;
-            padding: 1px 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .completed-stats {
-            background: var(--success-bg);
-            color: var(--success-color);
-            border-radius: 20px;
-            padding: 1px 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-        }
-
-        .notification-panel {
-            position: absolute;
-            top: 52px;
-            right: 0;
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: 16px;
-            width: 360px;
-            max-height: 480px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: var(--shadow-main);
-            border: 1px solid var(--border-card);
-        }
-
-        .notification-panel.show {
-            display: block;
-            animation: slideDown 0.25s ease;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .notification-header {
-            padding: var(--spacing-md);
-            font-weight: 700;
-            border-bottom: 1px solid var(--border-card);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            z-index: 10;
-        }
-
-        .mark-all-read {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .mark-all-read:hover {
-            text-decoration: underline;
-        }
-
-        .notification-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .notification-item {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--border-card);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .notification-item:hover {
-            background: var(--bg-input);
-        }
-
-        .notification-item.unread {
-            background: rgba(255, 107, 0, 0.05);
-            border-left: 3px solid var(--primary);
-        }
-
-        .notification-item.completed { border-left: 3px solid var(--success-color); }
-        .notification-item.last-day { border-left: 3px solid var(--warning-color); }
-        .notification-item.fee_pending { border-left: 3px solid var(--primary); }
-        .notification-item.attendance_risk { border-left: 3px solid var(--danger-color); }
-
-        .notification-title {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .notification-message {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .notification-time {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-
-        .empty-notifications {
-            text-align: center;
-            padding: var(--spacing-xl);
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
 
         /* Main Bounded Content Wrapper */
         .content-area {
@@ -954,6 +808,277 @@
         .self-table-history tr td:first-child { border-radius: 8px 0 0 8px; text-align: left; }
         .self-table-history tr td:last-child { border-radius: 0 8px 8px 0; text-align: right; }
 
+        /* Attendance Calendar CSS Styles */
+        .fc {
+            font-family: var(--font-sans) !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 16px !important;
+            padding: var(--spacing-md) !important;
+            box-shadow: var(--shadow-main) !important;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            overflow: hidden;
+        }
+        .fc .fc-toolbar-title {
+            color: var(--text-primary) !important;
+            font-size: 1.25rem !important;
+            font-weight: 700 !important;
+        }
+        .fc .fc-button-primary {
+            background-color: var(--bg-input) !important;
+            border-color: var(--border-card) !important;
+            color: var(--text-primary) !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+            text-transform: capitalize !important;
+            box-shadow: none !important;
+        }
+        .fc .fc-button-primary:hover {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+        .fc .fc-button-primary:disabled {
+            background-color: var(--bg-input) !important;
+            border-color: var(--border-card) !important;
+            opacity: 0.4 !important;
+            color: var(--text-secondary) !important;
+        }
+        .fc .fc-button-active {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+        .fc td, .fc th {
+            border-color: var(--border-card) !important;
+        }
+        .fc-theme-standard .fc-scrollgrid,
+        .fc-theme-standard th,
+        .fc-theme-standard td,
+        .fc-col-header,
+        .fc-scrollgrid-section-header > *,
+        .fc-col-header-cell,
+        .fc-timegrid-axis,
+        .fc-timegrid-axis-frame,
+        .fc-list-day,
+        .fc-list-day th {
+            background: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-card) !important;
+        }
+        .fc-scrollgrid-section-header table,
+        .fc-scrollgrid-section-body table {
+            background: var(--bg-card) !important;
+        }
+        .fc .fc-col-header-cell-cushion {
+            color: var(--text-primary) !important;
+            font-weight: 600 !important;
+            padding: 8px 0 !important;
+            text-decoration: none !important;
+            font-size: 0.9rem !important;
+        }
+        .fc .fc-daygrid-day-number {
+            color: var(--text-secondary) !important;
+            font-weight: 600 !important;
+            padding: 8px !important;
+            text-decoration: none !important;
+            font-size: 0.85rem !important;
+        }
+        .fc .fc-daygrid-day.fc-day-today {
+            background-color: rgba(255, 107, 0, 0.08) !important;
+            outline: 2px solid var(--primary) !important;
+            outline-offset: -2px !important;
+        }
+        .fc .fc-timegrid-col.fc-day-today {
+            background-color: rgba(255, 107, 0, 0.05) !important;
+            outline: 2px solid var(--primary) !important;
+            outline-offset: -2px !important;
+        }
+        .fc-theme-standard .fc-scrollgrid {
+            border-color: var(--border-card) !important;
+        }
+        .fc-event {
+            cursor: pointer !important;
+            border-radius: 8px !important;
+            padding: 6px 8px !important;
+            font-size: 0.8rem !important;
+            font-weight: 700 !important;
+            margin: 2px 0 !important;
+            border: none !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+            transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+            min-height: 48px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: stretch !important;
+        }
+        .fc-event-title {
+            display: block !important;
+            visibility: visible !important;
+            font-weight: 700 !important;
+        }
+        .fc-event:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        }
+        .fc-event-present {
+            background-color: #10B981 !important;
+        }
+        .fc-event-present,
+        .fc-event-present .fc-event-main,
+        .fc-event-present .fc-event-title,
+        .fc-event-present .fc-event-time {
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+        .fc-event-absent {
+            background-color: #EF4444 !important;
+        }
+        .fc-event-absent,
+        .fc-event-absent .fc-event-main,
+        .fc-event-absent .fc-event-title,
+        .fc-event-absent .fc-event-time {
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+        .fc-event-noclass {
+            background-color: #F59E0B !important;
+        }
+        .fc-event-noclass,
+        .fc-event-noclass .fc-event-main,
+        .fc-event-noclass .fc-event-title,
+        .fc-event-noclass .fc-event-time {
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+        .fc-event-upcoming {
+            background-color: #3B82F6 !important;
+        }
+        .fc-event-upcoming,
+        .fc-event-upcoming .fc-event-main,
+        .fc-event-upcoming .fc-event-title,
+        .fc-event-upcoming .fc-event-time {
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+        }
+        .fc .fc-timegrid-slot {
+            height: 3em !important;
+            border-bottom: 1px solid var(--border-card) !important;
+        }
+        .fc .fc-timegrid-slot-label-cushion {
+            color: var(--text-secondary) !important;
+            font-size: 0.8rem !important;
+        }
+        .fc .fc-timegrid-axis-cushion {
+            color: var(--text-secondary) !important;
+        }
+        .fc .fc-list-event-dot {
+            border-color: var(--primary) !important;
+        }
+        
+        /* Mobile adjustment for FullCalendar */
+        @media (max-width: 900px) {
+            .fc .fc-toolbar {
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: center !important;
+            }
+            .fc .fc-toolbar-chunk {
+                display: flex !important;
+                justify-content: center !important;
+                width: 100% !important;
+                flex-wrap: wrap !important;
+                gap: 4px !important;
+            }
+            .fc .fc-button {
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+                height: auto !important;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.1rem !important;
+                text-align: center !important;
+            }
+            .fc-event, 
+            .fc-timegrid-event, 
+            .fc-v-event,
+            .fc-h-event,
+            .fc-daygrid-event {
+                min-height: 60px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                padding: 4px !important;
+                box-sizing: border-box !important;
+            }
+            .fc-event-title, 
+            .fc-event-main,
+            .fc-event-time {
+                font-size: 10px !important;
+                line-height: 1.2 !important;
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: unset !important;
+                display: block !important;
+                visibility: visible !important;
+            }
+            .mobile-event {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                height: 100% !important;
+                width: 100% !important;
+            }
+            #attendanceCalendar {
+                min-height: auto !important;
+            }
+        }
+
+        /* Calendar Filter Row Styling */
+        .calendar-filters-row {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-card);
+            padding: 12px 18px;
+            border-radius: 12px;
+            width: 100%;
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        .calendar-filters-row input,
+        .calendar-filters-row select {
+            height: 40px !important;
+            padding: 0 12px !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--border-card) !important;
+            background: var(--bg-body) !important;
+            color: var(--text-primary) !important;
+            font-size: 0.9rem !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            align-items: center !important;
+            min-width: 150px;
+        }
+        .calendar-filters-row input {
+            flex: 1;
+            min-width: 200px;
+        }
+        .calendar-filters-row input:focus,
+        .calendar-filters-row select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 2px var(--primary-glow) !important;
+        }
+
         /* Modals style */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); z-index: 2000; justify-content: center; align-items: center; padding: var(--spacing-md); }
         .modal-content { background: var(--bg-card); color: var(--text-primary); border-radius: 20px; padding: var(--spacing-lg); max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-main); border: 1px solid var(--border-card); transform: scale(0.95); animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
@@ -1104,18 +1229,13 @@
             background: var(--border-card);
         }
 
-        /* Sidebar Mobile Actions Container */
+        /* Sidebar Actions Container */
         .sidebar-mobile-actions {
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: var(--spacing-xxs);
             padding: var(--spacing-sm);
             border-top: 1px solid var(--sidebar-border);
-        }
-        @media (max-width: 768px) {
-            .sidebar-mobile-actions {
-                display: flex;
-            }
         }
 
         /* Responsive Media Queries */
@@ -1150,7 +1270,7 @@
                 background: #0F172A !important;
                 z-index: 9999 !important;
                 overflow-y: auto;
-                transition: left 0.3s ease;
+                transition: transform 0.3s ease, left 0.3s ease;
                 box-shadow: 8px 0 30px rgba(0,0,0,0.5);
                 transform: none !important;
                 padding: 24px 18px !important;
@@ -1355,6 +1475,7 @@
             padding: 3px;
             background: white;
             z-index: 2;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.35);
         }
         .welcome-title {
             font-size: 2rem;
@@ -1380,15 +1501,116 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Notification Badge Pulse */
-        .notification-badge.pulse {
-            animation: badgePulse 2s infinite;
+        /* Style FullCalendar popover to Aurora dark theme */
+        .fc-popover {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            border-radius: 12px !important;
+            box-shadow: var(--shadow-main) !important;
+            backdrop-filter: var(--glass-blur) !important;
+            -webkit-backdrop-filter: var(--glass-blur) !important;
+            z-index: 9999 !important;
         }
-        @keyframes badgePulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(255, 107, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); }
+        .fc-popover-header {
+            background: var(--bg-body) !important;
+            border-bottom: 1px solid var(--border-card) !important;
+            border-radius: 11px 11px 0 0 !important;
+            padding: 8px 12px !important;
         }
+        .fc-popover-title {
+            color: var(--text-primary) !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+        }
+        .fc-popover-close {
+            color: var(--text-secondary) !important;
+            opacity: 0.8 !important;
+        }
+        .fc-popover-close:hover {
+            color: var(--text-primary) !important;
+            opacity: 1 !important;
+        }
+        .fc-popover-body {
+            padding: 8px !important;
+            background: transparent !important;
+        }
+
+        /* Expand calendar page container to full available width */
+        body:has(#attendanceCalendarPage.active-page) .content-container {
+            max-width: 96% !important;
+        }
+
+        /* Responsive filter row styling */
+        @media (max-width: 600px) {
+            .calendar-filters-row {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+                padding: 12px !important;
+            }
+            .calendar-filters-row input,
+            .calendar-filters-row select {
+                width: 100% !important;
+                flex: none !important;
+                min-width: 0 !important;
+            }
+        /* Prevent clipping of event content */
+        .fc-daygrid-event {
+            overflow: visible !important;
+            margin-left: 2px !important;
+            padding-left: 6px !important;
+        }
+
+        /* Fix event inner content */
+        .fc-event-main {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding-left: 4px !important;
+            overflow: visible !important;
+        }
+
+        /* Ensure title never starts outside box */
+        .fc-event-title {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            padding-left: 2px !important;
+            width: 100% !important;
+        }
+
+        /* Sunday cells specifically */
+        .fc-day-sun .fc-daygrid-event {
+            margin-left: 4px !important;
+        }
+
+        /* Stacking fix to prevent events from overlapping the day cell number */
+        .fc-daygrid-day-frame {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100% !important;
+        }
+        .fc-daygrid-day-top {
+            display: flex !important;
+            justify-content: flex-end !important;
+            padding: 4px 8px !important;
+            margin-bottom: 2px !important;
+        }
+        .fc-daygrid-day-events {
+            margin-top: 0 !important;
+            padding: 2px !important;
+        }
+
+        /* Ensure event text color is always solid white for maximum legibility */
+        .fc-event,
+        .fc-event .fc-event-main,
+        .fc-event .fc-event-title,
+        .fc-event .fc-event-time,
+        .fc-event * {
+            color: #FFFFFF !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
     </style>
 </head>
 <body>
@@ -1406,27 +1628,7 @@
         </div>
     </div>
 
-    <!-- Notification Permission Banner -->
-    <div id="notificationPermissionBanner" style="display: none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #ffffff; text-align: center; padding: 0.8rem 1.5rem; font-weight: 500; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99998; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.1); align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; transition: all 0.3s ease;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span style="font-size: 1.1rem;">🔔</span>
-            <span id="notificationPermissionText"><strong>Aurora V.75</strong> requests permission to show desktop notifications for system alerts.</span>
-        </div>
-        <div style="display: flex; gap: 0.8rem; align-items: center;">
-            <button id="enableNotificationsBtn" 
-                    onmouseover="this.style.transform='scale(1.04)';" 
-                    onmouseout="this.style.transform='scale(1)';" 
-                    style="background: linear-gradient(135deg, #FF6B00, #E05E00); color: white; border: none; padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(255, 107, 0, 0.25); outline: none;">
-                Enable
-            </button>
-            <button id="dismissNotificationsBannerBtn" 
-                    onmouseover="this.style.background='rgba(255,255,255,0.15)';" 
-                    onmouseout="this.style.background='rgba(255,255,255,0.08)';" 
-                    style="background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 0.45rem 1.2rem; border-radius: 20px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; outline: none;">
-                Later
-            </button>
-        </div>
-    </div>
+
 
     <div id="dbWarningBanner" style="display: none; background: #ef4444; color: white; text-align: center; padding: 0.8rem; font-weight: 600; font-size: 0.9rem; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
         ⚠️ Database Offline: Unable to connect to MongoDB Atlas. Please check your internet connection or network firewall (ensure port 27017 is open).
@@ -1441,7 +1643,7 @@
                     <img src="/logo.png" class="logo-img" alt="Aurora Logo">
                 </div>
                 <div class="brand-text">
-                    <h2>AURORA</h2>
+                    <h2>AURORA <span style="font-size: 0.75rem; opacity: 0.7; font-weight: 500; display: block; margin-top: 2px;">v0.75</span></h2>
                     <span>Staff Portal</span>
                 </div>
             </div>
@@ -1450,6 +1652,7 @@
                 <button class="nav-btn active" data-page="dashboard">📊 Dashboard</button>
                 <button class="nav-btn" data-page="addStudent">➕ Add Student</button>
                 <button class="nav-btn" data-page="attendance">✅ Mark Attendance</button>
+                <button class="nav-btn" data-page="attendanceCalendar">📅 Attendance Calendar</button>
                 <button class="nav-btn" data-page="records">📜 Records</button>
                 <button class="nav-btn" data-page="feeManagement">💰 Fee Management</button>
                 <button class="nav-btn" data-page="endedStudents">📁 Ended Students</button>
@@ -1460,7 +1663,6 @@
             <div class="sidebar-mobile-actions">
                 <button class="nav-btn" onclick="downloadExcel()">📊 Export Excel</button>
                 <button class="nav-btn" onclick="downloadPDF()">📄 Export PDF</button>
-                <button class="nav-btn mobile-theme-btn" onclick="document.getElementById('themeToggle').click()">🌓 Toggle Theme</button>
                 <button class="nav-btn" onclick="downloadPcApp()">🖥️ Download PC App</button>
                 <button class="nav-btn" onclick="downloadPhoneApp()">📱 Download Phone App</button>
             </div>
@@ -1479,46 +1681,16 @@
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 
-                <div class="header-mobile-brand">
+                <div class="header-mobile-brand" style="display: flex; align-items: center; gap: var(--spacing-xs);">
                     <img src="/logo.png" class="header-mobile-logo" alt="Aurora Logo">
-                    <span class="header-mobile-title">AURORA</span>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <span class="header-mobile-title" style="font-weight: 800; font-size: 1rem; color: var(--text-primary); margin: 0; line-height: 1;">AURORA</span>
+                        <span style="font-size: 0.65rem; opacity: 0.7; font-weight: 500; display: block; margin-top: 2px;">v0.75</span>
+                    </div>
                 </div>
                 
-                <div class="header-search-container">
-                    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="globalHeaderSearch" placeholder="Search students... (Ctrl+K)">
-                </div>
                 
                 <div class="header-actions">
-                    <button class="header-btn excel-btn" onclick="downloadExcel()">📊 Excel</button>
-                    <button class="header-btn pdf-btn" onclick="downloadPDF()">📄 PDF</button>
-                    
-                    <button class="header-btn" onclick="downloadPcApp()" title="Download PC App">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                    </button>
-                    <button class="header-btn" onclick="downloadPhoneApp()" title="Download Phone App">
-                        <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                    </button>
-                    
-                    <button id="themeToggle" class="header-btn theme-btn" title="Toggle Theme">🌓</button>
-                    
-                    <div class="notification-area">
-                        <div class="notification-bell" id="notificationBell">
-                            🔔 <span class="notification-badge" id="notificationCount">0</span>
-                            <span class="completed-stats" id="completedStatsBadge">🎓 <span id="completedCountBadge">0</span></span>
-                        </div>
-                        <div class="notification-panel" id="notificationPanel">
-                            <div class="notification-header">
-                                <span>🔔 Notifications</span>
-                                <button class="mark-all-read" onclick="markAllNotificationsRead()">Mark all read</button>
-                            </div>
-                            <div class="notification-list" id="notificationList">
-                                <div class="empty-notifications">No notifications</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <img id="staffProfilePhoto" src="" style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; display: none;" title="Google Profile Photo">
                     <button class="logout-btn" onclick="logout()" title="Logout">🚪 Logout</button>
                 </div>
             </header>
@@ -1767,6 +1939,7 @@
                                     <div id="selfStatusAbsent" class="self-status-option" onclick="selectSelfStatus('absent')">❌ Absent</div>
                                 </div>
                                 <div style="max-width: 320px; margin: 0 auto; text-align: left;" id="selfLoggingInputs">
+                                    <div class="form-group"><label>Select Date</label><input type="date" id="selfAttendanceDate"></div>
                                     <div class="form-group"><label>Check-In Time (12-hour)</label><input type="time" id="selfInTime" value="09:00"></div>
                                     <div class="form-group"><label>Check-Out Time (12-hour)</label><input type="time" id="selfOutTime" value="17:00"></div>
                                     <div class="form-group" id="remarksGroup"><label>Remarks (Required for Absent)</label><input type="text" id="selfRemarks" placeholder="Reason for absence..."></div>
@@ -1784,6 +1957,34 @@
                                     <tbody id="selfAttendanceTableBody"></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance Calendar Page -->
+                    <div id="attendanceCalendarPage" class="page">
+                        <div class="card">
+                            <div class="calendar-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs); gap: 1rem; flex-wrap: wrap;">
+                                <h2>📅 Student Attendance Calendar</h2>
+                            </div>
+                            <!-- Glass filters row -->
+                            <div class="calendar-filters-row">
+                                <input type="text" id="calendarSearchStudent" placeholder="🔍 Search Student Name...">
+                                <select id="calendarClassFilter">
+                                    <option value="All">All Classes</option>
+                                </select>
+                                <select id="calendarStatusFilter">
+                                    <option value="All">All Statuses</option>
+                                    <option value="Present">Present Only</option>
+                                    <option value="Absent">Absent Only</option>
+                                    <option value="No Class">No Class Only</option>
+                                    <option value="Upcoming Class">Upcoming Only</option>
+                                </select>
+                            </div>
+                            <!-- Statistics and date row -->
+                            <div id="calendarStatsRow" style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-md); flex-wrap: wrap; align-items: center; padding: 4px 6px;">
+                                <!-- Populated dynamically by javascript -->
+                            </div>
+                            <div id="attendanceCalendar" style="min-height: 600px; background: var(--bg-card); color: var(--text-primary);"></div>
                         </div>
                     </div>
 
@@ -1995,6 +2196,30 @@
         </div>
     </div>
 
+    <!-- Calendar Event Detail Modal -->
+    <div id="calendarEventModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>📅 Event Details</h3>
+                <span class="close-modal" onclick="closeCalendarEventModal()">&times;</span>
+            </div>
+            <div id="calendarEventContent" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                <!-- Event details dynamically injected here -->
+            </div>
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <button type="button" id="modalMarkPresentBtn" class="btn" style="flex: 1; background: #10B981; color: white; border: none; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">🟢 Present</button>
+                    <button type="button" id="modalMarkAbsentBtn" class="btn" style="flex: 1; background: #EF4444; color: white; border: none; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">🔴 Absent</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <button type="button" id="modalEditRemarksBtn" class="btn-outline" style="flex: 1; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer;">📝 Edit Remarks</button>
+                    <button type="button" id="modalDeleteRecordBtn" class="btn-outline" style="flex: 1; border-color: #EF4444; color: #EF4444; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer;">🗑️ Reset Slot</button>
+                </div>
+                <button type="button" onclick="closeCalendarEventModal()" class="btn-outline" style="width: 100%; margin-top: 0.5rem; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Confirmation Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content" style="max-width: 420px; text-align: center;">
@@ -2041,8 +2266,7 @@
 
 <script>
     // Theme initialization
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.setAttribute('data-theme', 'dark');
 
     // Sidebar toggler for mobile viewports
     function toggleSidebar() {
@@ -2066,18 +2290,8 @@
         });
     });
 
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        if (window.myDashboardChart) {
-            initStaffDashboardChart();
-        }
-    });
-
     // Global search input mirroring to sub-tabs inputs
-    document.getElementById('globalHeaderSearch').addEventListener('input', (e) => {
+    document.getElementById('globalHeaderSearch')?.addEventListener('input', (e) => {
         const term = e.target.value;
         const activePage = document.querySelector('.page.active-page');
         if (!activePage) return;
@@ -2112,138 +2326,7 @@
     });
 </script>
 <script>
-    (function() {
-        function adjustBannerPosition() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner || banner.style.display === 'none') return;
-            const dbBanner = document.getElementById('dbWarningBanner');
-            if (dbBanner && dbBanner.style.display !== 'none') {
-                banner.style.top = dbBanner.offsetHeight + 'px';
-                document.body.style.marginTop = (dbBanner.offsetHeight + banner.offsetHeight) + 'px';
-            } else {
-                banner.style.top = '0px';
-                document.body.style.marginTop = banner.offsetHeight + 'px';
-            }
-        }
 
-        function showBanner() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner) return;
-            banner.style.display = 'flex';
-            adjustBannerPosition();
-            window.addEventListener('resize', adjustBannerPosition);
-            
-            const interval = setInterval(adjustBannerPosition, 1000);
-            banner.dataset.intervalId = interval;
-        }
-
-        function hideBanner() {
-            const banner = document.getElementById('notificationPermissionBanner');
-            if (!banner) return;
-            banner.style.display = 'none';
-            document.body.style.marginTop = '0px';
-            window.removeEventListener('resize', adjustBannerPosition);
-            if (banner.dataset.intervalId) {
-                clearInterval(parseInt(banner.dataset.intervalId));
-            }
-            const dbBanner = document.getElementById('dbWarningBanner');
-            if (dbBanner && dbBanner.style.display !== 'none') {
-                document.body.style.marginTop = dbBanner.offsetHeight + 'px';
-            }
-        }
-
-        function updateBannerForDeniedState() {
-            const bannerText = document.getElementById('notificationPermissionText');
-            const enableBtn = document.getElementById('enableNotificationsBtn');
-            const dismissBtn = document.getElementById('dismissNotificationsBannerBtn');
-            if (bannerText) {
-                bannerText.innerHTML = '<strong>Notifications Blocked:</strong> Click the <strong>Lock/Settings icon 🔒</strong> next to the URL in your browser address bar and set <strong>Notifications</strong> to <strong>Allow</strong>.';
-            }
-            if (enableBtn) {
-                enableBtn.style.display = 'none';
-            }
-            if (dismissBtn) {
-                dismissBtn.innerText = 'Got it';
-            }
-        }
-
-        function initNotificationCheck() {
-            if (!("Notification" in window)) {
-                console.log("This browser does not support desktop notifications.");
-                return;
-            }
-
-            if (Notification.permission === "granted") {
-                return;
-            }
-
-            if (Notification.permission === "denied") {
-                updateBannerForDeniedState();
-                if (sessionStorage.getItem('notificationBannerDismissed') !== 'true') {
-                    showBanner();
-                }
-                return;
-            }
-
-            if (Notification.permission === "default" && sessionStorage.getItem('notificationBannerDismissed') !== 'true') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        triggerWelcomeNotification();
-                    } else if (permission === "denied") {
-                        updateBannerForDeniedState();
-                        showBanner();
-                    } else {
-                        showBanner();
-                    }
-                }).catch(() => {
-                    showBanner();
-                });
-            }
-        }
-
-        function triggerWelcomeNotification() {
-            if ("sendSystemNotification" in window) {
-                sendSystemNotification("🔔 Notifications Enabled", "You will now receive alerts and system updates from Aurora V.75.");
-            } else {
-                new Notification("🔔 Notifications Enabled", {
-                    body: "You will now receive alerts and system updates from Aurora V.75.",
-                    icon: '/logo.png'
-                });
-            }
-            if ("showToast" in window) {
-                showToast("🔔 System notifications enabled!");
-            } else if ("showMessage" in window) {
-                showMessage("🔔 System notifications enabled!", "success");
-            }
-        }
-
-        window.addEventListener('load', () => {
-            setTimeout(initNotificationCheck, 1500);
-
-            const enableBtn = document.getElementById('enableNotificationsBtn');
-            const dismissBtn = document.getElementById('dismissNotificationsBannerBtn');
-
-            if (enableBtn) {
-                enableBtn.addEventListener('click', () => {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") {
-                            hideBanner();
-                            triggerWelcomeNotification();
-                        } else if (permission === "denied") {
-                            updateBannerForDeniedState();
-                        }
-                    });
-                });
-            }
-
-            if (dismissBtn) {
-                dismissBtn.addEventListener('click', () => {
-                    hideBanner();
-                    sessionStorage.setItem('notificationBannerDismissed', 'true');
-                });
-            }
-        });
-    })();
 </script>
 
 <script>
@@ -2696,343 +2779,16 @@
     function clearRecordsSearch() { document.getElementById('recordsSearchInput').value = ''; renderRecordsPage(); }
     function clearFeeSearch() { document.getElementById('feeSearchInput').value = ''; renderFeeManagementList(); }
     
-    // Notification System
-    let notifications = [];
-    let unreadCount = 0;
-    let lastCompletedCount = 0;
-    let lastFeeCompletedCount = 0;
-
-    function requestNotificationPermission() {
-        if ("Notification" in window) {
-            if (Notification.permission === "default") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        showToast("🔔 System notifications enabled!");
-                    }
-                });
-            }
-        }
-    }
-
-    function sendSystemNotification(title, message) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            try {
-                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, {
-                            body: message,
-                            icon: '/logo.png',
-                            badge: '/logo.png',
-                            vibrate: [200, 100, 200]
-                        });
-                    });
-                } else {
-                    new Notification(title, {
-                        body: message,
-                        icon: '/logo.png'
-                    });
-                }
-            } catch (e) {
-                new Notification(title, {
-                    body: message,
-                    icon: '/logo.png'
-                });
-            }
-        }
-    }
-
-    function loadNotifications() {
-        const saved = localStorage.getItem('studentNotifications');
-        if (saved) { notifications = JSON.parse(saved); unreadCount = notifications.filter(n => !n.read).length; }
-        else { notifications = []; unreadCount = 0; }
-        updateNotificationUI();
-    }
-    function saveNotifications() { localStorage.setItem('studentNotifications', JSON.stringify(notifications)); unreadCount = notifications.filter(n => !n.read).length; updateNotificationUI(); }
-    function jumpNotificationBell() { const bell = document.getElementById('notificationBell'); bell.classList.add('jump'); setTimeout(() => bell.classList.remove('jump'), 600); }
-    function updateCompletedCountBadge() {
-        const completedCount = students.filter(s => getClassProgress(s).classStatus === 'completed').length;
-        document.getElementById('completedCountBadge').innerText = completedCount;
-        document.getElementById('completedCount').innerText = completedCount;
-        if (completedCount > lastCompletedCount) jumpNotificationBell();
-        lastCompletedCount = completedCount;
-    }
-    function addCompletionNotification(student, progress) {
-        if (progress.percentage >= 100 && progress.classStatus === 'completed') {
-            if (!notifications.find(n => n.studentId === student.id && n.type === 'completed')) {
-                notifications.unshift({ id: Date.now(), studentId: student.id, studentName: student.name, type: 'completed', title: '🎉 Course Completed!', message: `${student.name} completed 100% of their course!`, time: new Date().toISOString(), read: false });
-                saveNotifications(); 
-                showToast(`🎉 ${student.name} completed their course!`); 
-                jumpNotificationBell();
-                sendSystemNotification('🎉 Course Completed!', `${student.name} completed 100% of their course!`);
-            }
-        }
-    }
-    function addFeeCompletionNotification(student) {
-        const feeStatus = getFeeStatus(student);
-        if (feeStatus.remaining <= 0 && !student.feeNotified) {
-            if (!notifications.find(n => n.studentId === student.id && n.type === 'fee_completed')) {
-                notifications.unshift({ id: Date.now(), studentId: student.id, studentName: student.name, type: 'fee_completed', title: '💰 Fee Payment Completed!', message: `${student.name} has fully paid their fee of ₹${student.feeAmount}!`, time: new Date().toISOString(), read: false });
-                saveNotifications(); 
-                showToast(`💰 ${student.name} has completed fee payment!`);
-                jumpNotificationBell();
-                sendSystemNotification('💰 Fee Payment Completed!', `${student.name} has fully paid their fee of ₹${student.feeAmount}!`);
-            }
-            // Mark as notified to prevent duplicate notifications
-            fetch(`/api/students/${student.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feeNotified: true })
-            });
-        }
-    }
-    function addFeePendingNotification(student) {
-        const feeStatus = getFeeStatus(student);
-        if (feeStatus.remaining > 0) {
-            const existingIndex = notifications.findIndex(n => n.studentId === student.id && n.type === 'fee_pending');
-            if (existingIndex !== -1) {
-                if (notifications[existingIndex].remainingAmount !== feeStatus.remaining) {
-                    notifications.splice(existingIndex, 1);
-                } else {
-                    return;
-                }
-            }
-            
-            notifications.unshift({
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                studentId: student.id,
-                studentName: student.name,
-                type: 'fee_pending',
-                title: '💰 Fee Payment Pending!',
-                message: `${student.name} has a remaining balance of ₹${feeStatus.remaining}!`,
-                time: new Date().toISOString(),
-                read: false,
-                remainingAmount: feeStatus.remaining
-            });
-            saveNotifications();
-            
-            showToast(`💰 ${student.name} has a pending fee of ₹${feeStatus.remaining}`);
-            jumpNotificationBell();
-            sendSystemNotification('💰 Fee Payment Pending!', `${student.name} has a pending balance of ₹${feeStatus.remaining}!`);
-        }
-    }
-    function getAttendanceRiskStatus(student) {
-        const studentRecords = attendanceRecords.filter(r => r.studentId === student.id && r.status !== 'No Class');
-        const totalRecords = studentRecords.length;
-        if (totalRecords < 3) {
-            return { isAtRisk: false, rate: 100, absentCount: 0, totalCount: 0, threshold: 75 };
-        }
-        const presentCount = studentRecords.filter(r => r.status === 'Present').length;
-        const absentCount = totalRecords - presentCount;
-        const attendanceRate = totalRecords > 0 ? (presentCount / totalRecords) * 100 : 100;
-        const threshold = student.minAttendanceLimit !== undefined ? student.minAttendanceLimit : 75;
-        const isAtRisk = attendanceRate < threshold;
-        return {
-            isAtRisk: isAtRisk,
-            rate: attendanceRate.toFixed(1),
-            absentCount: absentCount,
-            totalCount: totalRecords,
-            threshold: threshold
-        };
-    }
-    
-    function addAttendanceRiskNotification(student, risk) {
-        if (risk.isAtRisk) {
-            const existingIndex = notifications.findIndex(n => n.studentId === student.id && n.type === 'attendance_risk');
-            if (existingIndex !== -1) {
-                if (notifications[existingIndex].rate !== risk.rate) {
-                    notifications.splice(existingIndex, 1);
-                } else {
-                    return;
-                }
-            }
-            
-            notifications.unshift({
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                studentId: student.id,
-                studentName: student.name,
-                type: 'attendance_risk',
-                title: '⚠️ Attendance Risk Alert!',
-                message: `${student.name} has a low attendance rate of ${risk.rate}% (limit: ${risk.threshold}%, ${risk.absentCount} absences out of ${risk.totalCount} classes).`,
-                time: new Date().toISOString(),
-                read: false,
-                rate: risk.rate
-            });
-            saveNotifications();
-            
-            showToast(`⚠️ ${student.name} is at risk of low attendance (${risk.rate}%)`);
-            jumpNotificationBell();
-            sendSystemNotification('⚠️ Attendance Risk Alert!', `${student.name} has a low attendance rate of ${risk.rate}%!`);
-        }
-    }
-    function addLastDayNotification(student, progress) {
-        if (progress.classStatus === 'last_day') {
-            if (!notifications.find(n => n.studentId === student.id && n.type === 'last_day')) {
-                notifications.unshift({ id: Date.now(), studentId: student.id, studentName: student.name, type: 'last_day', title: '⚠️ Last Day!', message: `${student.name} has 1 day remaining!`, time: new Date().toISOString(), read: false });
-                saveNotifications(); 
-                showToast(`⚠️ ${student.name} has 1 day remaining!`);
-                sendSystemNotification('⚠️ Last Day Alert!', `${student.name} has 1 day remaining!`);
-            }
-        }
-    }
-    function updateNotificationUI() {
-        const countBadge = document.getElementById('notificationCount');
-        const notificationList = document.getElementById('notificationList');
-        countBadge.innerText = unreadCount;
-        if (unreadCount > 0) {
-            countBadge.classList.add('has-notification');
-            countBadge.classList.add('pulse');
-        } else {
-            countBadge.classList.remove('has-notification');
-            countBadge.classList.remove('pulse');
-        }
-        if (!notificationList) return;
-        if (notifications.length === 0) { notificationList.innerHTML = '<div class="empty-notifications">✨ No notifications</div>'; return; }
-        notificationList.innerHTML = notifications.map(notif => `<div class="notification-item ${notif.read ? '' : 'unread'} ${notif.type}" onclick="markNotificationRead(${notif.id})"><div class="notification-title">${notif.title}</div><div class="notification-message">${notif.message}</div><div class="notification-time">${formatTimeAgo(notif.time)}</div></div>`).join('');
-    }
-    function formatTimeAgo(dateString) {
-        const date = new Date(dateString), now = new Date(), diffMins = Math.floor((now - date) / 60000), diffHours = Math.floor(diffMins / 60), diffDays = Math.floor(diffHours / 24);
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} min ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    }
-    function markNotificationRead(id) { const n = notifications.find(n => n.id === id); if (n) { n.read = true; saveNotifications(); } }
-    function markAllNotificationsRead() { notifications.forEach(n => n.read = true); saveNotifications(); showToast('All marked read'); }
+    // Simplified student progress update function
     function checkAllStudentProgress() { 
-        let pendingFeeStudents = [];
-        let endingClassStudents = [];
-        let atRiskStudents = [];
-        
-        students.forEach(s => { 
-            const p = getClassProgress(s); 
-            
-            if (p.percentage >= 100 && p.classStatus === 'completed') {
-                const hasNotif = notifications.find(n => n.studentId === s.id && n.type === 'completed');
-                if (!hasNotif) {
-                    endingClassStudents.push({ student: s, progress: p, type: 'completed' });
-                }
-            } else if (p.classStatus === 'last_day') {
-                const hasNotif = notifications.find(n => n.studentId === s.id && n.type === 'last_day');
-                if (!hasNotif) {
-                    endingClassStudents.push({ student: s, progress: p, type: 'last_day' });
-                }
-            }
-            
-            const feeStatus = getFeeStatus(s);
-            if (feeStatus.remaining > 0) {
-                const existingIndex = notifications.findIndex(n => n.studentId === s.id && n.type === 'fee_pending');
-                let shouldNotify = false;
-                if (existingIndex !== -1) {
-                    if (notifications[existingIndex].remainingAmount !== feeStatus.remaining) {
-                        notifications.splice(existingIndex, 1);
-                        shouldNotify = true;
-                    }
-                } else {
-                    shouldNotify = true;
-                }
-                
-                if (shouldNotify) {
-                    pendingFeeStudents.push({ student: s, remaining: feeStatus.remaining });
-                }
-            }
-            
-            const risk = getAttendanceRiskStatus(s);
-            if (risk.isAtRisk) {
-                const existingIndex = notifications.findIndex(n => n.studentId === s.id && n.type === 'attendance_risk');
-                let shouldNotify = false;
-                if (existingIndex !== -1) {
-                    if (notifications[existingIndex].rate !== risk.rate) {
-                        notifications.splice(existingIndex, 1);
-                        shouldNotify = true;
-                    }
-                } else {
-                    shouldNotify = true;
-                }
-                if (shouldNotify) {
-                    atRiskStudents.push({ student: s, risk: risk });
-                }
-            }
-            
-            addFeeCompletionNotification(s);
-        });
-        
-        if (endingClassStudents.length > 0) {
-            if (endingClassStudents.length > 2) {
-                endingClassStudents.forEach(item => {
-                    const title = item.type === 'completed' ? '🎉 Course Completed!' : '⚠️ Last Day!';
-                    const msg = item.type === 'completed' ? `${item.student.name} completed 100% of their course!` : `${item.student.name} has 1 day remaining!`;
-                    notifications.unshift({ id: Date.now() + Math.random(), studentId: item.student.id, studentName: item.student.name, type: item.type, title: title, message: msg, time: new Date().toISOString(), read: false });
-                });
-                saveNotifications();
-                showToast(`🔔 ${endingClassStudents.length} students have ending classes!`);
-                jumpNotificationBell();
-                sendSystemNotification('📚 Class Progress Update', `${endingClassStudents.length} students are ending their classes.`);
-            } else {
-                endingClassStudents.forEach(item => {
-                    if (item.type === 'completed') addCompletionNotification(item.student, item.progress);
-                    else addLastDayNotification(item.student, item.progress);
-                });
-            }
-        }
-        
-        if (pendingFeeStudents.length > 0) {
-            if (pendingFeeStudents.length > 2) {
-                let totalPendingAmount = 0;
-                pendingFeeStudents.forEach(item => {
-                    totalPendingAmount += item.remaining;
-                    notifications.unshift({
-                        id: Date.now() + Math.random(),
-                        studentId: item.student.id,
-                        studentName: item.student.name,
-                        type: 'fee_pending',
-                        title: '💰 Fee Payment Pending!',
-                        message: `${item.student.name} has a remaining balance of ₹${item.remaining}!`,
-                        time: new Date().toISOString(),
-                        read: false,
-                        remainingAmount: item.remaining
-                    });
-                });
-                saveNotifications();
-                showToast(`💰 ${pendingFeeStudents.length} students have pending fees of ₹${totalPendingAmount}`);
-                jumpNotificationBell();
-                sendSystemNotification('💰 Fee Payments Pending', `${pendingFeeStudents.length} students have a pending balance of ₹${totalPendingAmount}.`);
-            } else {
-                pendingFeeStudents.forEach(item => {
-                    addFeePendingNotification(item.student);
-                });
-            }
-        }
-        
-        if (atRiskStudents.length > 0) {
-            if (atRiskStudents.length > 2) {
-                atRiskStudents.forEach(item => {
-                    notifications.unshift({
-                        id: Date.now() + Math.random(),
-                        studentId: item.student.id,
-                        studentName: item.student.name,
-                        type: 'attendance_risk',
-                        title: '⚠️ Attendance Risk Alert!',
-                        message: `${item.student.name} has a low attendance rate of ${item.risk.rate}%!`,
-                        time: new Date().toISOString(),
-                        read: false,
-                        rate: item.risk.rate
-                    });
-                });
-                saveNotifications();
-                showToast(`⚠️ ${atRiskStudents.length} students are at risk of low attendance!`);
-                jumpNotificationBell();
-                sendSystemNotification('⚠️ Attendance Risk Alert', `${atRiskStudents.length} students have critically low attendance.`);
-            } else {
-                atRiskStudents.forEach(item => {
-                    addAttendanceRiskNotification(item.student, item.risk);
-                });
-            }
-        }
-        
         updateCompletedCountBadge(); 
     }
     
-    // Helper Functions
+    function updateCompletedCountBadge() {
+        const completedCount = students.filter(s => getClassProgress(s).classStatus === 'completed').length;
+        const compEl = document.getElementById('completedCount');
+        if (compEl) compEl.innerText = completedCount;
+    }
     function showToast(m) {
         const existing = document.querySelector('.toast-message');
         if (existing) existing.remove();
@@ -3078,6 +2834,26 @@
         return { totalDays: total, presentCount: present, remainingDays: Math.max(0, total - present), percentage: percent.toFixed(1), classStatus: present >= total ? 'completed' : (total - present === 1 ? 'last_day' : 'ongoing') };
     }
     
+    function getAttendanceRiskStatus(student) {
+        const studentRecords = attendanceRecords.filter(r => r.studentId === student.id && r.status !== 'No Class');
+        const totalRecords = studentRecords.length;
+        if (totalRecords < 3) {
+            return { isAtRisk: false, rate: 100, absentCount: 0, totalCount: 0, threshold: 75 };
+        }
+        const presentCount = studentRecords.filter(r => r.status === 'Present').length;
+        const absentCount = totalRecords - presentCount;
+        const attendanceRate = totalRecords > 0 ? (presentCount / totalRecords) * 100 : 100;
+        const threshold = student.minAttendanceLimit !== undefined ? student.minAttendanceLimit : 75;
+        const isAtRisk = attendanceRate < threshold;
+        return {
+            isAtRisk: isAtRisk,
+            rate: attendanceRate.toFixed(1),
+            absentCount: absentCount,
+            totalCount: totalRecords,
+            threshold: threshold
+        };
+    }
+    
     async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/login'; }
     let currentStaffSchedule = { startTime: '10:00', endTime: '20:00' };
     async function checkAuth() {
@@ -3094,7 +2870,17 @@
             const welcomeOverlay = document.getElementById('welcomeOverlay');
             const welcomeStaffName = document.getElementById('welcomeStaffName');
             if (welcomeOverlay && welcomeStaffName) {
-                welcomeStaffName.innerText = currentStaffName;
+                const hour = new Date().getHours();
+                let greeting = "Good Morning ☀️";
+                if (hour >= 12 && hour < 17) {
+                    greeting = "Good Afternoon 🌤️";
+                } else if (hour >= 17 || hour < 4) {
+                    greeting = "Good Evening 🌙";
+                }
+                const welcomeSubtitle = welcomeOverlay.querySelector('.welcome-subtitle');
+                if (welcomeSubtitle) {
+                    welcomeSubtitle.innerHTML = `${greeting}, <span id="welcomeStaffName">${escapeHtml(currentStaffName || 'Staff')}</span>! Preparing your workspace...`;
+                }
                 welcomeOverlay.style.display = 'flex';
                 setTimeout(() => {
                     welcomeOverlay.style.opacity = '0';
@@ -3143,6 +2929,472 @@
             });
         }
     }
+    // ==================================================
+    // ATTENDANCE CALENDAR CORE LOGIC
+    // ==================================================
+    let calendarInstance = null;
+    
+    function initAttendanceCalendar() {
+        const calendarEl = document.getElementById('attendanceCalendar');
+        if (!calendarEl) return;
+        
+        // Populate class filters
+        populateCalendarClassFilter();
+        
+        if (calendarInstance) {
+            calendarInstance.render();
+            calendarInstance.refetchEvents();
+            return;
+        }
+        
+        function getBestCalendarView() {
+            const width = window.innerWidth;
+            if (width < 600) return 'timeGridDay';
+            if (width < 900) return 'timeGridWeek';
+            return 'dayGridMonth';
+        }
+        
+        let initialView = getBestCalendarView();
+        
+        let initialHeight = window.innerWidth < 900 ? 'auto' : 600;
+        let initialContentHeight = window.innerWidth < 900 ? 550 : 600;
+        
+        calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: initialView,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            themeSystem: 'standard',
+            eventContent: function(info) {
+                const props = info.event.extendedProps || {};
+                const studentName = props.studentName || info.event.title || '';
+                const status = props.status || '';
+                const timeText = info.timeText || props.startTime || '';
+                
+                return {
+                    html: `
+                        <div class="fc-event-main-frame" style="display: flex; flex-direction: column; justify-content: center; height: 100%; width: 100%; box-sizing: border-box; overflow: hidden;">
+                            <div class="fc-event-title" style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block !important; visibility: visible !important;">${escapeHtml(studentName)}</div>
+                            <div class="fc-event-details-row" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 2px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.95); gap: 2px; white-space: nowrap;">
+                                <span class="fc-event-time" style="font-weight: 500;">${escapeHtml(timeText)}</span>
+                                <span class="fc-event-status-badge" style="font-weight: 700; opacity: 0.9;">${escapeHtml(status)}</span>
+                            </div>
+                        </div>
+                    `
+                };
+            },
+            events: function(info, successCallback, failureCallback) {
+                const start = info.startStr;
+                const end = info.endStr;
+                console.log(`[Calendar Debug] Fetching events between ${start} and ${end}`);
+                
+                fetch(`/api/calendar-attendance?start=${start}&end=${end}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error("API failed");
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log("[Calendar Debug] Raw attendance data fetched:", data);
+                        const filtered = filterCalendarEvents(data);
+                        console.log("[Calendar Debug] Filtered data count:", filtered.length);
+                        
+                        // Populate class filters dynamically
+                        populateCalendarClassFilter();
+                        
+                        // Dynamically update stats on screen
+                        updateCalendarStats(filtered);
+                        
+                        const events = filtered.map(item => {
+                            let colorClass = 'fc-event-upcoming';
+                            if (item.status === 'Present') colorClass = 'fc-event-present';
+                            else if (item.status === 'Absent') colorClass = 'fc-event-absent';
+                            else if (item.status === 'No Class') colorClass = 'fc-event-noclass';
+                            
+                            const startISO = `${item.date}T${item.startTime}:00`;
+                            const endISO = `${item.date}T${item.endTime}:00`;
+                            
+                            return {
+                                id: item.id,
+                                title: item.title || `${item.studentName} (${item.subject || 'Class'})`,
+                                start: startISO,
+                                end: endISO,
+                                classNames: [colorClass],
+                                extendedProps: item.extendedProps || item
+                            };
+                        });
+                        console.log("[Calendar Debug] Mapped FullCalendar events list:", events);
+                        successCallback(events);
+                    })
+                    .catch(err => {
+                        console.error('[Calendar Debug] Error fetching calendar events:', err);
+                        failureCallback(err);
+                    });
+            },
+            eventClick: function(info) {
+                showCalendarEventDetails(info.event.extendedProps);
+            },
+            height: initialHeight,
+            contentHeight: initialContentHeight,
+            dayMaxEvents: 3, // Limit events per cell on month view, show +more
+            firstDay: 1, // Week starts on Monday
+            allDaySlot: false,
+            slotMinTime: '06:00:00',
+            slotMaxTime: '22:00:00',
+            expandRows: true,
+            handleWindowResize: true,
+            windowResize: function(arg) {
+                let targetView = getBestCalendarView();
+                
+                if (arg.view.type !== targetView) {
+                    calendarInstance.changeView(targetView);
+                }
+                
+                calendarInstance.setOption('height', window.innerWidth < 900 ? 'auto' : 600);
+                calendarInstance.setOption('contentHeight', window.innerWidth < 900 ? 550 : 600);
+            }
+        });
+        
+        calendarInstance.render();
+        
+        // Add event listeners for filters
+        const searchInput = document.getElementById('calendarSearchStudent');
+        const classFilter = document.getElementById('calendarClassFilter');
+        const statusFilter = document.getElementById('calendarStatusFilter');
+        
+        if (searchInput) {
+            searchInput.removeEventListener('input', refreshCalendarEvents);
+            searchInput.addEventListener('input', refreshCalendarEvents);
+        }
+        if (classFilter) {
+            classFilter.removeEventListener('change', refreshCalendarEvents);
+            classFilter.addEventListener('change', refreshCalendarEvents);
+        }
+        if (statusFilter) {
+            statusFilter.removeEventListener('change', refreshCalendarEvents);
+            statusFilter.addEventListener('change', refreshCalendarEvents);
+        }
+    }
+    
+    function refreshCalendarEvents() {
+        if (calendarInstance) {
+            calendarInstance.refetchEvents();
+        }
+    }
+    
+    function updateCalendarStats(events) {
+        const statsRow = document.getElementById('calendarStatsRow');
+        if (!statsRow) return;
+        
+        let total = events.length;
+        let present = 0;
+        let absent = 0;
+        let noclass = 0;
+        let upcoming = 0;
+        
+        events.forEach(e => {
+            // Check if status is nested inside extendedProps
+            const status = e.status || (e.extendedProps ? e.extendedProps.status : '');
+            if (status === 'Present') present++;
+            else if (status === 'Absent') absent++;
+            else if (status === 'No Class') noclass++;
+            else if (status === 'Upcoming Class') upcoming++;
+        });
+        
+        const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        statsRow.innerHTML = `
+            <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-right: auto;">
+                📅 Today: <span style="color: var(--text-primary); font-weight: 700;">${todayStr}</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <div style="padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--text-primary);">Total Slots: ${total}</div>
+                <div style="padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.2); color: #10B981; display: flex; align-items: center; gap: 4px;">🟢 Present: ${present}</div>
+                <div style="padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.2); color: #EF4444; display: flex; align-items: center; gap: 4px;">🔴 Absent: ${absent}</div>
+                <div style="padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.2); color: #F59E0B; display: flex; align-items: center; gap: 4px;">🟠 No Class: ${noclass}</div>
+                <div style="padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.2); color: #3B82F6; display: flex; align-items: center; gap: 4px;">🔵 Upcoming: ${upcoming}</div>
+            </div>
+        `;
+    }
+    
+    function populateCalendarClassFilter() {
+        const classSelect = document.getElementById('calendarClassFilter');
+        if (!classSelect) return;
+        
+        const selectedVal = classSelect.value;
+        const classes = new Set();
+        students.forEach(s => {
+            if (s.class && s.isEnded !== true) {
+                classes.add(s.class);
+            }
+        });
+        
+        let html = '<option value="All">All Classes</option>';
+        classes.forEach(c => {
+            html += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+        });
+        classSelect.innerHTML = html;
+        
+        if (selectedVal && classes.has(selectedVal)) {
+            classSelect.value = selectedVal;
+        } else {
+            classSelect.value = 'All';
+        }
+    }
+    
+    function filterCalendarEvents(data) {
+        const searchInput = document.getElementById('calendarSearchStudent');
+        const classFilter = document.getElementById('calendarClassFilter');
+        const statusFilter = document.getElementById('calendarStatusFilter');
+        
+        const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const classVal = classFilter ? classFilter.value : 'All';
+        const statusVal = statusFilter ? statusFilter.value : 'All';
+        
+        return data.filter(item => {
+            // Student Name Search
+            if (searchText && !item.studentName.toLowerCase().includes(searchText)) {
+                return false;
+            }
+            // Class Filter
+            if (classVal !== 'All' && item.class !== classVal) {
+                return false;
+            }
+            // Status Filter
+            if (statusVal !== 'All') {
+                if (statusVal === 'Present' && item.status !== 'Present') return false;
+                if (statusVal === 'Absent' && item.status !== 'Absent') return false;
+                if (statusVal === 'No Class' && item.status !== 'No Class') return false;
+                if (statusVal === 'Upcoming Class' && item.status !== 'Upcoming Class') return false;
+            }
+            return true;
+        });
+    }
+    
+    function showCalendarEventDetails(props) {
+        const content = document.getElementById('calendarEventContent');
+        if (!content) return;
+        
+        let statusColor = '#3B82F6'; // Default Upcoming
+        let statusEmoji = '🔵';
+        if (props.status === 'Present') {
+            statusColor = '#10B981';
+            statusEmoji = '🟢';
+        } else if (props.status === 'Absent') {
+            statusColor = '#EF4444';
+            statusEmoji = '🔴';
+        } else if (props.status === 'No Class') {
+            statusColor = '#F59E0B';
+            statusEmoji = '🟠';
+        }
+        
+        const displayTime = formatTimeForDisplay(props.startTime) + ' - ' + formatTimeForDisplay(props.endTime);
+        
+        let remarksHtml = '';
+        if (props.remarks) {
+            remarksHtml = `
+                <div style="margin-top: 0.5rem; padding: 0.8rem; background: var(--bg-body); border-radius: 8px; border-left: 3px solid ${statusColor};">
+                    <strong>Remarks / Reason:</strong>
+                    <p style="margin-top: 4px; font-size: 0.9rem; color: var(--text-secondary);">${escapeHtml(props.remarks)}</p>
+                </div>
+            `;
+        }
+        
+        let staffHtml = '';
+        if (props.staffName) {
+            staffHtml = `
+                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
+                    <strong>Marked By:</strong> ${escapeHtml(props.staffName)}
+                </div>
+            `;
+        }
+        
+        content.innerHTML = `
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+                👤 ${escapeHtml(props.studentName)}
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-secondary);">
+                <strong>Class:</strong> ${escapeHtml(props.class)}
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;">
+                <strong>Subject:</strong> ${escapeHtml(props.subject || 'Class')}
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;">
+                <strong>Date:</strong> ${props.date}
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 4px;">
+                <strong>Time Slot:</strong> ${displayTime}
+            </div>
+            <div style="margin-top: 0.8rem; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; background: ${statusColor}20; color: ${statusColor}; width: fit-content;">
+                <span>${statusEmoji}</span>
+                <span>Status: ${props.status}</span>
+            </div>
+            ${remarksHtml}
+            ${staffHtml}
+        `;
+        
+        // Dynamically setup click event handlers for quick action buttons inside modal
+        const presentBtn = document.getElementById('modalMarkPresentBtn');
+        const absentBtn = document.getElementById('modalMarkAbsentBtn');
+        const editRemarksBtn = document.getElementById('modalEditRemarksBtn');
+        const deleteBtn = document.getElementById('modalDeleteRecordBtn');
+        
+        if (presentBtn) {
+            presentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Present');
+        }
+        if (absentBtn) {
+            absentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Absent');
+        }
+        if (editRemarksBtn) {
+            editRemarksBtn.onclick = () => quickEditRemarks(props.id, props.studentId, props.date, props.startTime, props.endTime, props.remarks);
+        }
+        if (deleteBtn) {
+            if (props.id.startsWith('upcoming_')) {
+                deleteBtn.style.display = 'none';
+            } else {
+                deleteBtn.style.display = 'block';
+                deleteBtn.onclick = () => quickDeleteAttendance(props.id);
+            }
+        }
+        
+        document.getElementById('calendarEventModal').style.display = 'flex';
+    }
+    
+    function closeCalendarEventModal() {
+        document.getElementById('calendarEventModal').style.display = 'none';
+    }
+    
+    async function quickMarkAttendance(studentId, date, startTime, endTime, status) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) {
+            showToast("❌ Student not found");
+            return;
+        }
+        
+        let remarks = "";
+        if (status === 'Absent') {
+            const val = prompt("Enter remarks for absence (optional):");
+            if (val === null) return;
+            remarks = val.trim();
+        }
+        
+        const payload = {
+            date: date,
+            attendance: [{
+                studentId: student.id,
+                studentName: student.name,
+                class: student.class,
+                branch: student.branch,
+                status: status,
+                startTime: startTime,
+                endTime: endTime,
+                subject: student.class || 'Class',
+                remarks: remarks
+            }]
+        };
+        
+        try {
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                showToast(`✅ Marked ${status}`);
+                closeCalendarEventModal();
+                refreshCalendarEvents();
+                await loadAttendance(); // reload other pages data
+            } else {
+                showToast("❌ Failed to save attendance");
+            }
+        } catch (err) {
+            console.error("Error in quickMarkAttendance:", err);
+            showToast("❌ Error saving attendance");
+        }
+    }
+    
+    async function quickDeleteAttendance(recordId) {
+        if (!recordId || recordId.startsWith('upcoming_')) return;
+        
+        if (!confirm("Are you sure you want to delete/reset this attendance record?")) {
+            return;
+        }
+        
+        try {
+            const res = await fetch(`/api/attendance/${recordId}`, {
+                method: 'DELETE'
+            });
+            
+            if (res.ok) {
+                showToast("✅ Record deleted/reset");
+                closeCalendarEventModal();
+                refreshCalendarEvents();
+                await loadAttendance(); // reload other pages data
+            } else {
+                showToast("❌ Failed to delete record");
+            }
+        } catch (err) {
+            console.error("Error in quickDeleteAttendance:", err);
+            showToast("❌ Error deleting record");
+        }
+    }
+    
+    async function quickEditRemarks(recordId, studentId, date, startTime, endTime, currentRemarks) {
+        const newRemarks = prompt("Edit remarks for this record:", currentRemarks || "");
+        if (newRemarks === null) return;
+        
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        
+        // Find existing status or default to Present
+        let status = 'Present';
+        if (calendarInstance && !recordId.startsWith('upcoming_')) {
+            const fcEvent = calendarInstance.getEventById(recordId);
+            if (fcEvent && fcEvent.extendedProps) {
+                status = fcEvent.extendedProps.status;
+            }
+        } else if (recordId.startsWith('upcoming_')) {
+            status = confirm("Mark as Present? (Click OK for Present, Cancel for Absent)") ? 'Present' : 'Absent';
+        }
+        
+        const payload = {
+            date: date,
+            attendance: [{
+                studentId: student.id,
+                studentName: student.name,
+                class: student.class,
+                branch: student.branch,
+                status: status,
+                startTime: startTime,
+                endTime: endTime,
+                subject: student.class || 'Class',
+                remarks: newRemarks.trim()
+            }]
+        };
+        
+        try {
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                showToast("✅ Remarks updated");
+                closeCalendarEventModal();
+                refreshCalendarEvents();
+                await loadAttendance(); // reload other pages data
+            } else {
+                showToast("❌ Failed to update remarks");
+            }
+        } catch (err) {
+            console.error("Error in quickEditRemarks:", err);
+            showToast("❌ Error updating remarks");
+        }
+    }
+
     async function loadStudents() {
         try { const res = await fetch('/api/students'); if (res.ok) { students = await res.json(); students.forEach(s => { if (!s.days) s.days = []; if (!s.feePaidAmount) s.feePaidAmount = 0; if (!s.paymentHistory) s.paymentHistory = []; if (!currentAttendanceSelections[s.id]) currentAttendanceSelections[s.id] = { status: 'Present', inTime: s.classStartTime || '09:00', outTime: s.classEndTime || '17:00', date: new Date().toISOString().slice(0,10) }; }); checkAllStudentProgress(); renderAll(); } else { students = []; renderAll(); } } catch(e) { students = []; renderAll(); }
         syncStudentsToServiceWorker();
@@ -3747,40 +3999,90 @@
     function closeEndModal() { document.getElementById('endStudentModal').style.display = 'none'; currentEndStudentId = null; }
     
     // Self Attendance
+    let selfLogsList = [];
+
     async function renderSelfAttendanceRecords() {
-        const body = document.getElementById('selfAttendanceTableBody'), badge = document.getElementById('selfStatusBadge'), todayStr = new Date().toISOString().slice(0,10);
-        try { const res = await fetch('/api/staff_self_attendance'); if (!res.ok) return; const logs = await res.json(); const signedToday = logs.find(l => l.date === todayStr); 
-            if (signedToday) {
-                if (signedToday.status === 'Present') { badge.innerText = "✅ Status: Marked Present Today"; badge.className = "self-status-indicator marked-present"; }
-                else { badge.innerText = "❌ Status: Marked Absent Today"; badge.className = "self-status-indicator marked-absent"; }
-                document.getElementById('selfLoggingInputs').style.opacity = "0.5"; document.getElementById('selfLoggingInputs').style.pointerEvents = "none";
-                document.getElementById('selfStatusPresent').style.pointerEvents = "none"; document.getElementById('selfStatusAbsent').style.pointerEvents = "none";
-                postToServiceWorker({ type: 'ATTENDANCE_MARKED', date: todayStr });
-            } else {
-                badge.innerText = "⏰ Status: Not Marked Today"; badge.className = "self-status-indicator unmarked";
-                document.getElementById('selfLoggingInputs').style.opacity = "1"; document.getElementById('selfLoggingInputs').style.pointerEvents = "all";
-                document.getElementById('selfStatusPresent').style.pointerEvents = "all"; document.getElementById('selfStatusAbsent').style.pointerEvents = "all";
-                postToServiceWorker({ type: 'ATTENDANCE_MARKED', date: '' });
+        const body = document.getElementById('selfAttendanceTableBody');
+        const dateInput = document.getElementById('selfAttendanceDate');
+        
+        if (dateInput && !dateInput.value) {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+            if (!dateInput.dataset.listenerBound) {
+                dateInput.addEventListener('change', () => {
+                    updateSelfAttendanceFormStatus();
+                });
+                dateInput.dataset.listenerBound = "true";
             }
-            if (!logs.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 No records</td></td>'; return; }
-            body.innerHTML = logs.map(l => `<tr><td data-label="Date"><strong>${l.date}</strong></td><td data-label="Status"><span class="badge ${l.status === 'Present' ? 'present' : 'absent'}">${l.status}</span></td><td data-label="In Time">${formatTimeForDisplay(l.inTime || '09:00')}</td><td data-label="Out Time">${formatTimeForDisplay(l.outTime || '17:00')}</td><td data-label="Remarks">${l.remarks || '-'}</td><td data-label="Action"><button class="self-delete-btn" onclick="deleteSelfAttendanceRecord('${l.id}')">🗑️</button></td></tr>`).join('');
+        }
+
+        try { 
+            const res = await fetch('/api/staff_self_attendance'); 
+            if (!res.ok) return; 
+            selfLogsList = await res.json(); 
+            
+            updateSelfAttendanceFormStatus();
+
+            if (!selfLogsList.length) { body.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 No records</td></td>'; return; }
+            body.innerHTML = selfLogsList.map(l => `<tr><td data-label="Date"><strong>${l.date}</strong></td><td data-label="Status"><span class="badge ${l.status === 'Present' ? 'present' : 'absent'}">${l.status}</span></td><td data-label="In Time">${formatTimeForDisplay(l.inTime || '09:00')}</td><td data-label="Out Time">${formatTimeForDisplay(l.outTime || '17:00')}</td><td data-label="Remarks">${l.remarks || '-'}</td><td data-label="Action"><button class="self-delete-btn" onclick="deleteSelfAttendanceRecord('${l.id}')">🗑️</button></td></tr>`).join('');
         } catch(e) { console.error(e); }
     }
+
+    function updateSelfAttendanceFormStatus() {
+        const badge = document.getElementById('selfStatusBadge');
+        const dateInput = document.getElementById('selfAttendanceDate');
+        if (!dateInput) return;
+        
+        const selectedDate = dateInput.value;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const signedSelectedDate = selfLogsList.find(l => l.date === selectedDate);
+        
+        if (signedSelectedDate) {
+            if (signedSelectedDate.status === 'Present') { 
+                badge.innerText = `✅ Status: Marked Present for ${selectedDate}`; 
+                badge.className = "self-status-indicator marked-present"; 
+            } else { 
+                badge.innerText = `❌ Status: Marked Absent for ${selectedDate}`; 
+                badge.className = "self-status-indicator marked-absent"; 
+            }
+        } else {
+            badge.innerText = `⏰ Status: Not Marked for ${selectedDate}`; 
+            badge.className = "self-status-indicator unmarked";
+        }
+
+        const signedToday = selfLogsList.find(l => l.date === todayStr);
+        if (signedToday) {
+            postToServiceWorker({ type: 'ATTENDANCE_MARKED', date: todayStr });
+        } else {
+            postToServiceWorker({ type: 'ATTENDANCE_MARKED', date: '' });
+        }
+    }
+
     async function logSelfAttendance() {
-        const inTime = document.getElementById('selfInTime').value, outTime = document.getElementById('selfOutTime').value, remarks = document.getElementById('selfRemarks').value, status = selectedSelfStatus === 'present' ? 'Present' : 'Absent';
+        const date = document.getElementById('selfAttendanceDate').value;
+        const inTime = document.getElementById('selfInTime').value;
+        const outTime = document.getElementById('selfOutTime').value;
+        const remarks = document.getElementById('selfRemarks').value;
+        const status = selectedSelfStatus === 'present' ? 'Present' : 'Absent';
+        
+        if (!date) { showToast("❌ Please select a date!"); return; }
         if (status === 'Absent' && (!remarks || remarks.trim() === '')) { showToast("❌ Please provide a reason for absence!"); return; }
+        
         showToast("⏳ Saving attendance...");
-        const res = await fetch('/api/staff_self_attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ inTime, outTime, status, remarks }) });
+        const res = await fetch('/api/staff_self_attendance', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ date, inTime, outTime, status, remarks }) 
+        });
+        
         if (res.ok) { 
             showToast(`✅ ${status} attendance logged!`); 
-            const todayStr = new Date().toISOString().slice(0,10);
-            postToServiceWorker({ type: 'ATTENDANCE_MARKED', date: todayStr });
             await renderSelfAttendanceRecords(); 
         } else { 
             const err = await res.json(); 
             showToast(`❌ ${err.error || 'Failed to save'}`); 
         }
     }
+
     async function deleteSelfAttendanceRecord(logId) { 
         if(!confirm("Delete this record?")) return; 
         const res = await fetch(`/api/staff_self_attendance/${logId}`, { method: 'DELETE' }); 
@@ -3838,14 +4140,10 @@
     document.getElementById('partialEndTime')?.addEventListener('input', validateNoClassForms);
     document.getElementById('partialReason')?.addEventListener('change', validateNoClassForms);
     
-    document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('notificationPanel').classList.toggle('show'); requestNotificationPermission(); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('.notification-area')) document.getElementById('notificationPanel').classList.remove('show'); });
-    
     initCheckboxStyling();
-    loadNotifications();
     selectSelfStatus('present');
     
-    const pages = ['dashboardPage', 'addStudentPage', 'attendancePage', 'recordsPage', 'feeManagementPage', 'endedStudentsPage', 'selfAttendancePage'];
+    const pages = ['dashboardPage', 'addStudentPage', 'attendancePage', 'recordsPage', 'feeManagementPage', 'endedStudentsPage', 'selfAttendancePage', 'attendanceCalendarPage'];
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             pages.forEach(p => document.getElementById(p).classList.remove('active-page'));
@@ -3856,6 +4154,9 @@
             if (btn.dataset.page === 'dashboard') renderDashboardStudentList();
             if (btn.dataset.page === 'endedStudents') renderEndedStudentsList();
             if (btn.dataset.page === 'feeManagement') renderFeeManagementList();
+            if (btn.dataset.page === 'attendanceCalendar') {
+                setTimeout(initAttendanceCalendar, 50);
+            }
             if (btn.dataset.page === 'attendance') { const d = document.getElementById('attendanceDate'); if (d && !d.value) { d.value = new Date().toISOString().slice(0,10); updateAllAttendanceDates(d.value); } renderAttendancePageList(); }
         });
     });
@@ -3981,29 +4282,7 @@ exit`;
         });
     }
     
-    // Check if the user just logged in successfully and trigger a welcome notification
-    if (sessionStorage.getItem('justLoggedIn') === 'true') {
-        sessionStorage.removeItem('justLoggedIn');
-        setTimeout(() => {
-            if ("Notification" in window) {
-                if (Notification.permission === "granted") {
-                    sendSystemNotification("🔑 Login Successful", `Welcome back, ${currentStaffName || 'Staff'}! Logged in successfully.`);
-                } else if (Notification.permission === "default") {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") {
-                            sendSystemNotification("🔑 Login Successful", `Welcome back, ${currentStaffName || 'Staff'}! Logged in successfully.`);
-                        } else {
-                            showToast("🔔 Notification permission was denied.");
-                        }
-                    });
-                } else if (Notification.permission === "denied") {
-                    showToast("🔔 Notifications are blocked. Please enable them in browser settings.");
-                }
-            } else {
-                showToast("🔔 Web Notifications are not supported by this browser.");
-            }
-        }, 1500);
-    }
+
     
     // Auto-refresh student and attendance data silently every 30 seconds in the background
     setInterval(() => {
@@ -4023,48 +4302,7 @@ exit`;
             document.body.style.marginTop = '45px';
         }
     }
-    function initFirebase() {
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        
-        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-            try {
-                firebase.initializeApp(firebaseConfig);
-                if (firebase.messaging.isSupported()) {
-                    const messaging = firebase.messaging();
-                    
-                    // Request permission and get token
-                    messaging.getToken({ vapidKey: "YOUR_PUBLIC_VAPID_KEY" }).then((currentToken) => {
-                        if (currentToken) {
-                            console.log("FCM Token:", currentToken);
-                            fetch('/api/save_fcm_token', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ token: currentToken })
-                            });
-                        }
-                    }).catch((err) => {
-                        console.log("Error retrieving FCM token:", err);
-                    });
-                    
-                    messaging.onMessage((payload) => {
-                        console.log("Foreground Message:", payload);
-                        if (payload.notification) {
-                            showToast(`🔔 ${payload.notification.title}: ${payload.notification.body}`);
-                        }
-                    });
-                }
-            } catch(e) {
-                console.error("Firebase init failed:", e);
-            }
-        }
-    }
+
     
     // Custom Confirmation Modal Logic
     let confirmCallback = null;
@@ -4428,7 +4666,7 @@ exit`;
     loadStudents();
     loadAttendance();
     loadEndedStudents();
-    initFirebase();
+
     addAddTimetableRow('09:00', '17:00', '');
     window.onclick = (e) => { 
         if (e.target.classList.contains('modal')) { 
