@@ -1503,13 +1503,19 @@
 
         /* Style FullCalendar popover to Aurora dark theme */
         .fc-popover {
-            background: var(--bg-card) !important;
+            background: #1E293B !important;
+            color: white !important;
             border: 1px solid var(--border-card) !important;
-            border-radius: 12px !important;
+            border-radius: 16px !important;
             box-shadow: var(--shadow-main) !important;
             backdrop-filter: var(--glass-blur) !important;
             -webkit-backdrop-filter: var(--glass-blur) !important;
             z-index: 9999 !important;
+        }
+        .calendar-student-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .fc-popover-header {
             background: var(--bg-body) !important;
@@ -1776,8 +1782,22 @@
                                 
                                 <div class="form-section-title">⏰ Schedule & Timetable (Period-wise)</div>
                                 <div class="grid-2" style="display: none;">
-                                    <div class="form-group"><label>Start Time</label><input type="time" id="classStartTime" value="09:00"></div>
-                                    <div class="form-group"><label>End Time</label><input type="time" id="classEndTime" value="17:00"></div>
+                                    <div class="form-group">
+                                        <label>Start Time</label>
+                                        <div style="display: flex; gap: 4px; align-items: center;">
+                                            <input type="time" id="classStartTime" value="09:00" oninput="updateTimetableRow12h(this)" style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                                            <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">AM</button>
+                                        </div>
+                                        <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">9:00 AM</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>End Time</label>
+                                        <div style="display: flex; gap: 4px; align-items: center;">
+                                            <input type="time" id="classEndTime" value="17:00" oninput="updateTimetableRow12h(this)" style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                                            <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">PM</button>
+                                        </div>
+                                        <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">5:00 PM</small>
+                                    </div>
                                 </div>
                                 <div id="addStudentTimetableContainer" style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
                                     <!-- Timetable slots will go here -->
@@ -2039,8 +2059,22 @@
                     </div>
                     <div class="form-section-title">⏰ Schedule & Timetable (Period-wise)</div>
                     <div class="grid-2" style="display: none;">
-                        <div class="form-group"><label>Start Time</label><input type="time" id="editClassStartTime"></div>
-                        <div class="form-group"><label>End Time</label><input type="time" id="editClassEndTime"></div>
+                        <div class="form-group">
+                            <label>Start Time</label>
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <input type="time" id="editClassStartTime" oninput="updateTimetableRow12h(this)" style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                                <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">AM</button>
+                            </div>
+                            <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>End Time</label>
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <input type="time" id="editClassEndTime" oninput="updateTimetableRow12h(this)" style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                                <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">PM</button>
+                            </div>
+                            <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;"></small>
+                        </div>
                     </div>
                     <div id="editStudentTimetableContainer" style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;"></div>
                     <button type="button" onclick="addEditTimetableRow()" class="btn-outline" style="width: 100%; margin-bottom: 1.5rem;">➕ Add Period</button>
@@ -2933,6 +2967,7 @@
     // ATTENDANCE CALENDAR CORE LOGIC
     // ==================================================
     let calendarInstance = null;
+    let currentCalendarEventProps = null;
     
     function initAttendanceCalendar() {
         const calendarEl = document.getElementById('attendanceCalendar');
@@ -2967,16 +3002,37 @@
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             themeSystem: 'standard',
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short',
+                hour12: true
+            },
+            slotLabelFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            },
             eventContent: function(info) {
                 const props = info.event.extendedProps || {};
                 const studentName = props.studentName || info.event.title || '';
                 const status = props.status || '';
-                const timeText = info.timeText || props.startTime || '';
+                
+                let timeText = '';
+                if (props.startTime && props.endTime) {
+                    if (info.view.type === 'dayGridMonth') {
+                        timeText = convertTo12Hour(props.startTime);
+                    } else {
+                        timeText = convertTo12Hour(props.startTime) + ' - ' + convertTo12Hour(props.endTime);
+                    }
+                } else {
+                    timeText = info.timeText || '';
+                }
                 
                 return {
                     html: `
                         <div class="fc-event-main-frame" style="display: flex; flex-direction: column; justify-content: center; height: 100%; width: 100%; box-sizing: border-box; overflow: hidden;">
-                            <div class="fc-event-title" style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block !important; visibility: visible !important;">${escapeHtml(studentName)}</div>
+                            <div class="fc-event-title calendar-student-name" style="font-weight: 700; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block !important; visibility: visible !important;">${escapeHtml(studentName)}</div>
                             <div class="fc-event-details-row" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 2px; font-size: 0.7rem; color: rgba(255, 255, 255, 0.95); gap: 2px; white-space: nowrap;">
                                 <span class="fc-event-time" style="font-weight: 500;">${escapeHtml(timeText)}</span>
                                 <span class="fc-event-status-badge" style="font-weight: 700; opacity: 0.9;">${escapeHtml(status)}</span>
@@ -3033,7 +3089,11 @@
                     });
             },
             eventClick: function(info) {
-                showCalendarEventDetails(info.event.extendedProps);
+                const props = info.event.extendedProps || {};
+                if (props.studentId) {
+                    currentCalendarEventProps = props;
+                    viewStudentDetails(props.studentId, props);
+                }
             },
             height: initialHeight,
             contentHeight: initialContentHeight,
@@ -3391,6 +3451,186 @@
             }
         } catch (err) {
             console.error("Error in quickEditRemarks:", err);
+            showToast("❌ Error updating remarks");
+        }
+    }
+
+    async function quickMarkAttendanceFromDetail(status) {
+        if (!currentCalendarEventProps) return;
+        const studentId = currentCalendarEventProps.studentId;
+        const date = currentCalendarEventProps.date;
+        const startTime = currentCalendarEventProps.startTime;
+        const endTime = currentCalendarEventProps.endTime;
+        
+        const student = students.find(s => s.id === studentId);
+        if (!student) {
+            showToast("❌ Student not found");
+            return;
+        }
+        
+        let remarks = "";
+        if (status === 'Absent') {
+            const val = prompt("Enter remarks for absence (optional):");
+            if (val === null) return;
+            remarks = val.trim();
+        }
+        
+        const payload = {
+            date: date,
+            attendance: [{
+                studentId: student.id,
+                studentName: student.name,
+                class: student.class,
+                branch: student.branch,
+                status: status,
+                startTime: startTime,
+                endTime: endTime,
+                subject: student.class || 'Class',
+                remarks: remarks
+            }]
+        };
+        
+        try {
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                showToast(`✅ Marked ${status}`);
+                
+                // Update currentCalendarEventProps
+                currentCalendarEventProps.status = status;
+                currentCalendarEventProps.remarks = remarks;
+                currentCalendarEventProps.staffName = currentStaffName || 'You';
+                if (currentCalendarEventProps.id && currentCalendarEventProps.id.startsWith('upcoming_')) {
+                    currentCalendarEventProps.id = `${studentId}_${date}_${startTime}`;
+                }
+                
+                if (calendarInstance) {
+                    calendarInstance.refetchEvents();
+                }
+                await loadStudents();
+                await loadAttendance();
+                
+                viewStudentDetails(studentId, currentCalendarEventProps);
+            } else {
+                showToast("❌ Failed to save attendance");
+            }
+        } catch (err) {
+            console.error("Error in quickMarkAttendanceFromDetail:", err);
+            showToast("❌ Error saving attendance");
+        }
+    }
+    
+    async function quickDeleteAttendanceFromDetail() {
+        if (!currentCalendarEventProps) return;
+        const recordId = currentCalendarEventProps.id;
+        const studentId = currentCalendarEventProps.studentId;
+        if (!recordId || recordId.startsWith('upcoming_')) return;
+        
+        if (!confirm("Are you sure you want to delete/reset this attendance record?")) {
+            return;
+        }
+        
+        try {
+            const res = await fetch(`/api/attendance/${recordId}`, {
+                method: 'DELETE'
+            });
+            
+            if (res.ok) {
+                showToast("✅ Record deleted/reset");
+                
+                // Update currentCalendarEventProps to upcoming
+                currentCalendarEventProps.id = `upcoming_${studentId}_${currentCalendarEventProps.date}_${currentCalendarEventProps.startTime}`;
+                currentCalendarEventProps.status = 'Upcoming Class';
+                currentCalendarEventProps.remarks = 'Upcoming Scheduled Class';
+                currentCalendarEventProps.staffName = '';
+                
+                if (calendarInstance) {
+                    calendarInstance.refetchEvents();
+                }
+                await loadStudents();
+                await loadAttendance();
+                
+                viewStudentDetails(studentId, currentCalendarEventProps);
+            } else {
+                showToast("❌ Failed to delete record");
+            }
+        } catch (err) {
+            console.error("Error in quickDeleteAttendanceFromDetail:", err);
+            showToast("❌ Error deleting record");
+        }
+    }
+    
+    async function quickEditRemarksFromDetail() {
+        if (!currentCalendarEventProps) return;
+        const recordId = currentCalendarEventProps.id;
+        const studentId = currentCalendarEventProps.studentId;
+        const date = currentCalendarEventProps.date;
+        const startTime = currentCalendarEventProps.startTime;
+        const endTime = currentCalendarEventProps.endTime;
+        const currentRemarks = currentCalendarEventProps.remarks || '';
+        
+        const newRemarks = prompt("Edit remarks for this record:", currentRemarks);
+        if (newRemarks === null) return;
+        
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        
+        let status = 'Present';
+        if (currentCalendarEventProps.status && currentCalendarEventProps.status !== 'Upcoming Class') {
+            status = currentCalendarEventProps.status;
+        } else {
+            status = confirm("Mark as Present? (Click OK for Present, Cancel for Absent)") ? 'Present' : 'Absent';
+        }
+        
+        const payload = {
+            date: date,
+            attendance: [{
+                studentId: student.id,
+                studentName: student.name,
+                class: student.class,
+                branch: student.branch,
+                status: status,
+                startTime: startTime,
+                endTime: endTime,
+                subject: student.class || 'Class',
+                remarks: newRemarks.trim()
+            }]
+        };
+        
+        try {
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                showToast("✅ Remarks updated");
+                
+                // Update currentCalendarEventProps
+                currentCalendarEventProps.status = status;
+                currentCalendarEventProps.remarks = newRemarks.trim();
+                currentCalendarEventProps.staffName = currentStaffName || 'You';
+                if (recordId.startsWith('upcoming_')) {
+                    currentCalendarEventProps.id = `${studentId}_${date}_${startTime}`;
+                }
+                
+                if (calendarInstance) {
+                    calendarInstance.refetchEvents();
+                }
+                await loadStudents();
+                await loadAttendance();
+                
+                viewStudentDetails(studentId, currentCalendarEventProps);
+            } else {
+                showToast("❌ Failed to update remarks");
+            }
+        } catch (err) {
+            console.error("Error in quickEditRemarksFromDetail:", err);
             showToast("❌ Error updating remarks");
         }
     }
@@ -3925,7 +4165,7 @@
         renderAttendancePageList();
     }
     
-    function viewStudentDetails(id) {
+    function viewStudentDetails(id, eventProps = null) {
         const s = students.find(s => s.id === id) || endedStudents.find(s => s.id === id);
         if (!s) return;
         const p = getClassProgress(s), days = getWorkingDaysList(s);
@@ -3954,8 +4194,62 @@
         } else {
             timetableHtml = `<div class="student-detail-row"><div class="detail-label">Timing:</div><div class="detail-value">${formatTimeForDisplay(s.classStartTime || '09:00')} - ${formatTimeForDisplay(s.classEndTime || '17:00')} (Single Period)</div></div>`;
         }
+
+        let calendarSlotHtml = '';
+        if (eventProps) {
+            let statusEmoji = '🔵';
+            let statusColor = '#3B82F6';
+            if (eventProps.status === 'Present') {
+                statusEmoji = '🟢';
+                statusColor = '#10B981';
+            } else if (eventProps.status === 'Absent') {
+                statusEmoji = '🔴';
+                statusColor = '#EF4444';
+            } else if (eventProps.status === 'No Class') {
+                statusEmoji = '🟠';
+                statusColor = '#F59E0B';
+            }
+            
+            let formattedDate = eventProps.date;
+            try {
+                const dateObj = new Date(eventProps.date);
+                if (!isNaN(dateObj)) {
+                    formattedDate = dateObj.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                }
+            } catch(e) {}
+            
+            const displayTime = convertTo12Hour(eventProps.startTime) + ' - ' + convertTo12Hour(eventProps.endTime);
+            const isUpcoming = eventProps.id && eventProps.id.startsWith('upcoming_');
+            
+            calendarSlotHtml = `
+                <div class="calendar-slot-banner" style="background: var(--bg-input); border: 1px solid var(--border-card); border-radius: 12px; padding: 1rem; margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">📅 ${formattedDate}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">🕒 ${displayTime}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                            <strong>Status:</strong> 
+                            <span style="font-weight: 700; color: ${statusColor}; display: inline-flex; align-items: center; gap: 4px;">
+                                ${statusEmoji} ${eventProps.status}
+                            </span>
+                        </div>
+                        ${eventProps.remarks ? `<div style="font-size: 0.85rem; color: var(--text-secondary);"><strong>Remarks:</strong> ${escapeHtml(eventProps.remarks)}</div>` : ''}
+                        ${eventProps.staffName ? `<div style="font-size: 0.85rem; color: var(--text-secondary);"><strong>Marked By:</strong> ${escapeHtml(eventProps.staffName)}</div>` : ''}
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; width: 100%;">
+                        <button type="button" onclick="quickMarkAttendanceFromDetail('Present')" class="btn" style="flex: 1; min-width: 100px; background: #10B981; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem;">🟢 Present</button>
+                        <button type="button" onclick="quickMarkAttendanceFromDetail('Absent')" class="btn" style="flex: 1; min-width: 100px; background: #EF4444; color: white; border: none; padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem;">🔴 Absent</button>
+                        <button type="button" onclick="quickEditRemarksFromDetail()" class="btn-outline" style="flex: 1; min-width: 100px; padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">📝 Remarks</button>
+                        ${!isUpcoming ? `<button type="button" onclick="quickDeleteAttendanceFromDetail()" class="btn-outline" style="flex: 1; min-width: 100px; border-color: #EF4444; color: #EF4444; padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">🔄 Reset</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
         
-        document.getElementById('viewStudentContent').innerHTML = `<div class="student-detail-row"><div class="detail-label">Name:</div><div class="detail-value">${escapeHtml(s.name)} ${p.classStatus === 'completed' ? '<span class="completed-badge">🎓 Completed</span>' : ''}${s.isEnded ? '<span class="ended-badge">Ended</span>' : ''}</div></div><div class="student-detail-row"><div class="detail-label">Phone:</div><div class="detail-value">${s.phone || 'N/A'}</div></div><div class="student-detail-row"><div class="detail-label">Branch:</div><div class="detail-value">${escapeHtml(s.branch || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Class:</div><div class="detail-value">${escapeHtml(s.class || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Address:</div><div class="detail-value">${escapeHtml(s.address || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Parent:</div><div class="detail-value">${escapeHtml(s.parentName || 'N/A')} (${s.parentPhone || 'N/A'})</div></div><div class="student-detail-row"><div class="detail-label">Total Days:</div><div class="detail-value">${s.totalClassDays || 30}</div></div><div class="student-detail-row"><div class="detail-label">Working Days:</div><div class="detail-value">${days.map(d => `<span class="working-day-badge">${d.substring(0,3)}</span>`).join(' ')}</div></div><div class="student-detail-row"><div class="detail-label">Attended:</div><div class="detail-value">${p.presentCount}/${p.totalDays} (${p.percentage}%)</div></div><div class="student-detail-row"><div class="detail-label">Min Attendance Limit:</div><div class="detail-value">${s.minAttendanceLimit !== undefined ? s.minAttendanceLimit : 75}%</div></div>${timetableHtml}<div class="student-detail-row"><div class="detail-label">Total Fee:</div><div class="detail-value">₹${f.total}</div></div><div class="student-detail-row"><div class="detail-label">Paid Amount:</div><div class="detail-value">₹${f.paid}</div></div><div class="student-detail-row"><div class="detail-label">Remaining:</div><div class="detail-value" style="color:${f.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:bold;">₹${f.remaining}</div></div><div class="student-detail-row"><div class="detail-label">Fee Status:</div><div class="detail-value" style="color:${f.color}">${f.message}</div></div>${paymentHistoryHtml}${endedInfo}${riskRow}`;
+        document.getElementById('viewStudentContent').innerHTML = calendarSlotHtml + `<div class="student-detail-row"><div class="detail-label">Name:</div><div class="detail-value">${escapeHtml(s.name)} ${p.classStatus === 'completed' ? '<span class="completed-badge">🎓 Completed</span>' : ''}${s.isEnded ? '<span class="ended-badge">Ended</span>' : ''}</div></div><div class="student-detail-row"><div class="detail-label">Phone:</div><div class="detail-value">${s.phone || 'N/A'}</div></div><div class="student-detail-row"><div class="detail-label">Branch:</div><div class="detail-value">${escapeHtml(s.branch || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Class:</div><div class="detail-value">${escapeHtml(s.class || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Address:</div><div class="detail-value">${escapeHtml(s.address || 'N/A')}</div></div><div class="student-detail-row"><div class="detail-label">Parent:</div><div class="detail-value">${escapeHtml(s.parentName || 'N/A')} (${s.parentPhone || 'N/A'})</div></div><div class="student-detail-row"><div class="detail-label">Total Days:</div><div class="detail-value">${s.totalClassDays || 30}</div></div><div class="student-detail-row"><div class="detail-label">Working Days:</div><div class="detail-value">${days.map(d => `<span class="working-day-badge">${d.substring(0,3)}</span>`).join(' ')}</div></div><div class="student-detail-row"><div class="detail-label">Attended:</div><div class="detail-value">${p.presentCount}/${p.totalDays} (${p.percentage}%)</div></div><div class="student-detail-row"><div class="detail-label">Min Attendance Limit:</div><div class="detail-value">${s.minAttendanceLimit !== undefined ? s.minAttendanceLimit : 75}%</div></div>${timetableHtml}<div class="student-detail-row"><div class="detail-label">Total Fee:</div><div class="detail-value">₹${f.total}</div></div><div class="student-detail-row"><div class="detail-label">Paid Amount:</div><div class="detail-value">₹${f.paid}</div></div><div class="student-detail-row"><div class="detail-label">Remaining:</div><div class="detail-value" style="color:${f.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:bold;">₹${f.remaining}</div></div><div class="student-detail-row"><div class="detail-label">Fee Status:</div><div class="detail-value" style="color:${f.color}">${f.message}</div></div>${paymentHistoryHtml}${endedInfo}${riskRow}`;
         document.getElementById('viewStudentModal').style.display = 'flex';
     }
     
@@ -3971,8 +4265,12 @@
         document.getElementById('editParentName').value = s.parentName || '';
         document.getElementById('editParentPhone').value = s.parentPhone || '';
         document.getElementById('editTotalClassDays').value = s.totalClassDays || 30;
-        document.getElementById('editClassStartTime').value = s.classStartTime || '09:00';
-        document.getElementById('editClassEndTime').value = s.classEndTime || '17:00';
+        const editStart = document.getElementById('editClassStartTime');
+        const editEnd = document.getElementById('editClassEndTime');
+        editStart.value = s.classStartTime || '09:00';
+        editEnd.value = s.classEndTime || '17:00';
+        updateTimetableRow12h(editStart);
+        updateTimetableRow12h(editEnd);
         document.getElementById('editFeeAmount').value = s.feeAmount || 2500;
         document.getElementById('editMinAttendanceLimit').value = s.minAttendanceLimit !== undefined ? s.minAttendanceLimit : 75;
         setEditWorkingDaysCheckboxes(getWorkingDaysList(s));
@@ -4325,23 +4623,89 @@ exit`;
 
     // Timetable Row Builder Logic
     function createTimetableRowHtml(containerId, index, startTime = '09:00', endTime = '10:00', subject = '') {
+        const startHours = parseInt(startTime.split(':')[0]);
+        const endHours = parseInt(endTime.split(':')[0]);
+        const startPeriod = startHours >= 12 ? 'PM' : 'AM';
+        const endPeriod = endHours >= 12 ? 'PM' : 'AM';
+        
         return `
         <div class="timetable-row" id="${containerId}_row_${index}" style="display: flex; align-items: flex-end; gap: 0.5rem; flex-wrap: wrap; background: var(--surface); padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-card);">
             <div class="form-group" style="flex: 1; min-width: 140px; margin-bottom: 0;">
                 <label style="font-size: 0.75rem; margin-bottom: 0.2rem;">Subject *</label>
                 <input type="text" class="timetable-subject" placeholder="e.g. Physics" value="${escapeHtml(subject)}" required style="padding: 0.5rem 0.8rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
             </div>
-            <div class="form-group" style="width: 120px; margin-bottom: 0;">
+            <div class="form-group" style="width: 155px; margin-bottom: 0;">
                 <label style="font-size: 0.75rem; margin-bottom: 0.2rem;">Start *</label>
-                <input type="time" class="timetable-start" value="${startTime}" required style="padding: 0.5rem 0.8rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <input type="time" class="timetable-start" value="${startTime}" oninput="updateTimetableRow12h(this)" required style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                    <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">${startPeriod}</button>
+                </div>
+                <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">${convertTo12Hour(startTime)}</small>
             </div>
-            <div class="form-group" style="width: 120px; margin-bottom: 0;">
+            <div class="form-group" style="width: 155px; margin-bottom: 0;">
                 <label style="font-size: 0.75rem; margin-bottom: 0.2rem;">End *</label>
-                <input type="time" class="timetable-end" value="${endTime}" required style="padding: 0.5rem 0.8rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <input type="time" class="timetable-end" value="${endTime}" oninput="updateTimetableRow12h(this)" required style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                    <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">${endPeriod}</button>
+                </div>
+                <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">${convertTo12Hour(endTime)}</small>
             </div>
             <button type="button" onclick="removeTimetableRow('${containerId}_row_${index}')" class="icon-btn btn-delete" style="padding: 0.6rem; border-radius: 12px; margin-top: 0; align-self: flex-end; height: 38px; display: flex; align-items: center; justify-content: center; width: 38px; cursor: pointer;">🗑️</button>
         </div>
         `;
+    }
+    
+    function updateTimetableRow12h(inputEl) {
+        if (!inputEl) return;
+        const timeVal = inputEl.value;
+        if (!timeVal) return;
+        
+        let [hoursStr, minutesStr] = timeVal.split(':');
+        let hours = parseInt(hoursStr, 10);
+        if (isNaN(hours)) return;
+        
+        const period = hours >= 12 ? 'PM' : 'AM';
+        
+        const formGroup = inputEl.closest('.form-group');
+        if (formGroup) {
+            const previewEl = formGroup.querySelector('.time-12h-preview');
+            if (previewEl) {
+                previewEl.innerText = convertTo12Hour(timeVal);
+            }
+            
+            const ampmBtn = formGroup.querySelector('.ampm-toggle-btn');
+            if (ampmBtn) {
+                ampmBtn.innerText = period;
+            }
+        }
+    }
+    
+    function toggleInputAmPm(button) {
+        const formGroup = button.closest('.form-group');
+        if (!formGroup) return;
+        
+        const inputEl = formGroup.querySelector('input[type="time"]');
+        if (!inputEl) return;
+        
+        let timeVal = inputEl.value;
+        if (!timeVal) timeVal = "09:00";
+        
+        let [hoursStr, minutesStr] = timeVal.split(':');
+        let hours = parseInt(hoursStr, 10);
+        if (isNaN(hours)) hours = 9;
+        let minutes = minutesStr || "00";
+        
+        if (hours >= 12) {
+            hours = hours - 12;
+        } else {
+            hours = hours + 12;
+        }
+        
+        const newHoursStr = hours.toString().padStart(2, '0');
+        inputEl.value = `${newHoursStr}:${minutes}`;
+        
+        // Trigger input event to update preview and button text
+        updateTimetableRow12h(inputEl);
     }
     
     function removeTimetableRow(id) {
