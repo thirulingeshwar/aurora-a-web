@@ -1616,6 +1616,33 @@
             color: #FFFFFF !important;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
         }
+        
+        /* Subject filter buttons */
+        .subject-filter-btn {
+            padding: 0.55rem 1.1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-card);
+            background: var(--surface);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .subject-filter-btn.active {
+            background: linear-gradient(95deg, var(--accent), var(--accent-hover));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(229, 0, 18, 0.25);
+            transform: scale(1.02);
+        }
+        .subject-filter-btn:hover:not(.active) {
+            background: var(--bg-input);
+            transform: translateY(-1px);
+        }
 
     </style>
 </head>
@@ -1859,6 +1886,9 @@
                                     <input type="text" id="attendanceSearchInput" placeholder="🔍 Search by name, class, branch, or phone...">
                                     <button class="search-clear" onclick="clearAttendanceSearch()">Clear</button>
                                 </div>
+                            </div>
+                            <div id="subjectFilterContainer" style="margin-top: 1rem; margin-bottom: 0.5rem; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+                                <!-- Subject buttons will be dynamically rendered here -->
                             </div>
                             <div id="studentsAttendanceList" style="margin-top: 1rem;">
                                 <div class="skeleton-list">
@@ -2374,6 +2404,7 @@
     let currentEndStudentId = null;
     let currentPaymentStudent = null;
     let selectedSelfStatus = 'present';
+    let currentSubjectFilter = 'All';
     
     function postToServiceWorker(message) {
         if ('serviceWorker' in navigator) {
@@ -3687,6 +3718,11 @@
             }
             
             timetable.forEach(slot => {
+                const subjectName = slot.subject || s.class || 'Class';
+                if (currentSubjectFilter !== 'All' && subjectName !== currentSubjectFilter) {
+                    return;
+                }
+
                 const key = `${s.id}_${slot.startTime}_${slot.endTime}`;
                 const sel = currentAttendanceSelections[key] || {
                     status: 'Present',
@@ -3715,7 +3751,7 @@
         
         showConfirmModal(
             "💾 Save Attendance?",
-            `Are you sure you want to save attendance records for all ${students.length} students?`,
+            `Are you sure you want to save attendance records for all ${data.length} slots?`,
             async () => {
                 const res = await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance: data }) });
                 if (res.ok) {
@@ -3827,6 +3863,42 @@
     function renderAttendancePageList() {
         const container = document.getElementById('studentsAttendanceList');
         if (!container) return;
+
+        // 1. Gather all unique subjects from active students
+        const uniqueSubjects = new Set();
+        students.forEach(s => {
+            if (s.isEnded === true) return;
+            let timetable = s.timetable || [];
+            if (timetable.length === 0) {
+                uniqueSubjects.add(s.class || 'Class');
+            } else {
+                timetable.forEach(slot => {
+                    if (slot.subject) {
+                        uniqueSubjects.add(slot.subject);
+                    }
+                });
+            }
+        });
+        const subjectList = Array.from(uniqueSubjects).sort();
+
+        // 2. Render the subject filter buttons
+        const filterContainer = document.getElementById('subjectFilterContainer');
+        if (filterContainer) {
+            let filterHtml = `
+                <button type="button" class="subject-filter-btn ${currentSubjectFilter === 'All' ? 'active' : ''}" onclick="setSubjectFilter('All')">
+                    📚 All
+                </button>
+            `;
+            subjectList.forEach(subj => {
+                filterHtml += `
+                    <button type="button" class="subject-filter-btn ${currentSubjectFilter === subj ? 'active' : ''}" onclick="setSubjectFilter('${escapeHtml(subj)}')">
+                        📖 ${escapeHtml(subj)}
+                    </button>
+                `;
+            });
+            filterContainer.innerHTML = filterHtml;
+        }
+
         const searchTerm = document.getElementById('attendanceSearchInput')?.value || '';
         let filtered = filterStudentsByTerm(students, searchTerm);
         const dateInput = document.getElementById('attendanceDate');
@@ -3841,6 +3913,13 @@
             }
             
             timetable.forEach(slot => {
+                const subjectName = slot.subject || s.class || 'Class';
+                
+                // Filter by subject if active
+                if (currentSubjectFilter !== 'All' && subjectName !== currentSubjectFilter) {
+                    return;
+                }
+
                 const key = `${s.id}_${slot.startTime}_${slot.endTime}`;
                 const sel = currentAttendanceSelections[key] || {
                     status: 'Present',
@@ -3906,7 +3985,17 @@
             });
         });
         
+        if (!html && currentSubjectFilter !== 'All') {
+            container.innerHTML = `<div style="text-align:center;padding:2rem;color:#666;">📭 No student slots found for subject: ${escapeHtml(currentSubjectFilter)}</div>`;
+            return;
+        }
+        
         container.innerHTML = html;
+    }
+
+    function setSubjectFilter(subj) {
+        currentSubjectFilter = subj;
+        renderAttendancePageList();
     }
     
     function renderRecordsPage() {
