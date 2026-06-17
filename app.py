@@ -87,6 +87,11 @@ def init_db():
 
         if 'no_class_audit_logs' not in existing_collections:
             db.create_collection('no_class_audit_logs')
+
+        if 'custom_class_slots' not in existing_collections:
+            db.create_collection('custom_class_slots')
+            db['custom_class_slots'].create_index([('studentId', 1), ('date', 1)])
+            db['custom_class_slots'].create_index('id')
         
         print("All collections and indexes ready")
         return True
@@ -710,6 +715,10 @@ def manage_attendance():
         
         saved_records = []
         for record in records:
+            status = record.get('status', 'Present')
+            if status not in ['Present', 'Absent', 'No Class']:
+                continue
+            rec_date = record.get('date') or date
             attendance_record = {
                 'id': str(uuid.uuid4())[:8],
                 'studentId': record.get('studentId'),
@@ -719,19 +728,21 @@ def manage_attendance():
                 'staffId': staff_id,
                 'staffName': staff_name,
                 'status': record.get('status', 'Present'),
-                'date': date,
+                'date': rec_date,
                 'inTime': record.get('inTime', '09:00'),
                 'outTime': record.get('outTime', '17:00'),
                 'startTime': record.get('startTime'),
                 'endTime': record.get('endTime'),
                 'subject': record.get('subject'),
                 'remarks': record.get('remarks', ''),
+                'reason': record.get('reason', ''),
+                'type': record.get('type', ''),
                 'createdAt': datetime.now()
             }
             
             query = {
                 'studentId': record.get('studentId'),
-                'date': date,
+                'date': rec_date,
                 'staffId': staff_id
             }
             if record.get('startTime'):
@@ -1027,14 +1038,121 @@ def get_no_class_audit_logs():
 
 @app.route('/api/attendance/<record_id>', methods=['DELETE'])
 def delete_attendance_record(record_id):
-    if attendance_collection is None:
+    if db is None:
         return jsonify({'error': 'Database not connected'}), 503
     if not session.get('logged_in'):
         return jsonify({'error': 'Unauthorized'}), 401
     
     staff_id = session.get('staff_id')
-    attendance_collection.delete_one({'id': record_id, 'staffId': staff_id})
-    return jsonify({'message': 'Attendance record deleted'})
+    
+    # 1. Try to delete from attendance
+    result = attendance_collection.delete_one({'id': record_id, 'staffId': staff_id})
+    if result.deleted_count > 0:
+        return jsonify({'message': 'Attendance record deleted'})
+        
+    # 2. Try to soft-delete in custom_class_slots
+    custom_col = db['custom_class_slots']
+    custom_slot = custom_col.find_one({'id': record_id})
+    if custom_slot:
+        custom_col.update_one(
+            {'_id': custom_slot['_id']},
+            {'$set': {
+                'isDeleted': True,
+                'deletedAt': datetime.now()
+            }}
+        )
+        return jsonify({'message': 'Custom class slot soft deleted'})
+        
+    return jsonify({'error': 'Record not found'}), 404
+
+@app.route('/api/custom-class-slots', methods=['GET', 'POST'])
+def manage_custom_class_slots():
+    if db is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    staff_id = session.get('staff_id')
+    custom_col = db['custom_class_slots']
+    
+    if request.method == 'GET':
+        # Load active students for this staff
+        collection_name = f"staff_students_{staff_id}"
+        students_col = db[collection_name]
+        active_students = list(students_col.find({'isEnded': {'$ne': True}}))
+        active_student_ids = [s['id'] for s in active_students]
+        
+        slots = list(custom_col.find({
+            'studentId': {'$in': active_student_ids},
+            'isDeleted': {'$ne': True}
+        }))
+        return jsonify([serialize_doc(s) for s in slots])
+        
+    if request.method == 'POST':
+        data = request.json
+        student_id = data.get('studentId')
+        date = data.get('date')
+        start_time = data.get('startTime')
+        end_time = data.get('endTime')
+        subject = data.get('subject')
+        
+        if not student_id or not date or not start_time or not end_time:
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        # Load student
+        collection_name = f"staff_students_{staff_id}"
+        students_col = db[collection_name]
+        student = students_col.find_one({'id': student_id})
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
+            
+        # Overlap validation: regular timetable slots
+        try:
+            target_dt = datetime.strptime(date, '%Y-%m-%d')
+            weekday = target_dt.strftime('%A')
+        except Exception as e:
+            return jsonify({'error': 'Invalid date format'}), 400
+            
+        if weekday in student.get('days', []):
+            timetable = student.get('timetable') or []
+            if not timetable:
+                timetable = [{
+                    'startTime': student.get('classStartTime') or student.get('inTime') or '09:00',
+                    'endTime': student.get('classEndTime') or student.get('outTime') or '17:00'
+                }]
+            for slot in timetable:
+                slot_start = slot.get('startTime')
+                slot_end = slot.get('endTime')
+                if start_time < slot_end and end_time > slot_start:
+                    return jsonify({'error': 'This student already has a class during this time.'}), 400
+                    
+        # Overlap validation: other custom class slots
+        existing_custom = list(custom_col.find({
+            'studentId': student_id,
+            'date': date,
+            'isDeleted': {'$ne': True}
+        }))
+        for slot in existing_custom:
+            slot_start = slot.get('startTime')
+            slot_end = slot.get('endTime')
+            if start_time < slot_end and end_time > slot_start:
+                return jsonify({'error': 'This student already has a class during this time.'}), 400
+                
+        # Insert custom class slot
+        new_slot = {
+            'id': str(uuid.uuid4())[:8],
+            'studentId': student_id,
+            'date': date,
+            'startTime': start_time,
+            'endTime': end_time,
+            'subject': subject or student.get('class') or 'Class',
+            'status': 'Upcoming Class',
+            'isDeleted': False,
+            'createdAt': datetime.now(),
+            'createdBy': staff_id
+        }
+        custom_col.insert_one(new_slot)
+        return jsonify({'message': 'Custom class slot saved successfully', 'slot': serialize_doc(new_slot)}), 201
 
 # ==================================================
 # STATISTICS
@@ -1078,6 +1196,62 @@ def get_stats():
             'todayPresent': present_today,
             'user_type': 'staff'
         })
+
+# ==================================================
+# ADMIN STUDENTS BY SUBJECT
+# ==================================================
+
+@app.route('/api/admin/students_by_subject', methods=['GET'])
+def get_students_by_subject():
+    if db is None or staff_collection is None:
+        return jsonify({'error': 'Database not connected'}), 503
+    if not session.get('logged_in') or session.get('user_type') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        all_staff = list(staff_collection.find())
+        subject_map = {}
+        
+        for staff in all_staff:
+            staff_id = staff.get('staffId')
+            staff_name = staff.get('fullName', 'Unknown')
+            
+            col_name = f"staff_students_{staff_id}"
+            if col_name in db.list_collection_names():
+                students = list(db[col_name].find({'isEnded': {'$ne': True}}))
+                for stud in students:
+                    stud_serialized = serialize_doc(stud)
+                    stud_serialized['staffName'] = staff_name
+                    stud_serialized['staffId'] = staff_id
+                    
+                    student_subjects = set()
+                    
+                    # 1. student's class
+                    s_class = stud.get('class', '').strip()
+                    if s_class:
+                        student_subjects.add(s_class.title())
+                        
+                    # 2. student's timetable slot subjects
+                    timetable = stud.get('timetable', [])
+                    for slot in timetable:
+                        s_subj = slot.get('subject', '').strip()
+                        if s_subj:
+                            student_subjects.add(s_subj.title())
+                            
+                    # Fallback if no subject at all
+                    if not student_subjects:
+                        student_subjects.add("Class")
+                        
+                    for sub in student_subjects:
+                        if sub not in subject_map:
+                            subject_map[sub] = []
+                        if not any(x['id'] == stud_serialized['id'] for x in subject_map[sub]):
+                            subject_map[sub].append(stud_serialized)
+                            
+        return jsonify(subject_map)
+    except Exception as e:
+        print(f"Error in get_students_by_subject: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ==================================================
 # STAFF SELF ATTENDANCE ENDPOINTS
@@ -1297,6 +1471,20 @@ def get_calendar_attendance():
         print(f"CALENDAR-ATTENDANCE: Error querying student collection '{collection_name}': {err}")
         active_students = []
 
+    # Load custom class slots for these active students
+    active_student_ids = [s['id'] for s in active_students]
+    custom_slots_col = db['custom_class_slots']
+    custom_slots = list(custom_slots_col.find({
+        'studentId': {'$in': active_student_ids},
+        'date': {'$gte': start_date_str, '$lte': end_date_str},
+        'isDeleted': {'$ne': True}
+    }))
+    
+    # Group custom slots by date
+    custom_slots_by_date = {}
+    for cs in custom_slots:
+        custom_slots_by_date.setdefault(cs['date'], []).append(cs)
+
     calendar_events = []
     today_str = today.strftime('%Y-%m-%d')
     
@@ -1390,6 +1578,78 @@ def get_calendar_attendance():
                                 'staffName': ''
                             }
                         })
+        # Check custom class slots for this date
+        today_custom = custom_slots_by_date.get(curr_date_str, [])
+        for cs in today_custom:
+            student = next((s for s in active_students if s['id'] == cs['studentId']), None)
+            if not student:
+                continue
+                
+            s_time = cs['startTime']
+            e_time = cs['endTime']
+            if len(s_time) > 5: s_time = s_time[:5]
+            if len(e_time) > 5: e_time = e_time[:5]
+            
+            key = (cs['studentId'], curr_date_str, s_time, e_time)
+            
+            if key in logged_map:
+                record = logged_map[key]
+                status = record.get('status', 'Present')
+                subj = record.get('subject') or cs.get('subject') or 'Class'
+                calendar_events.append({
+                    'id': record.get('id') or f"{cs['studentId']}_{curr_date_str}_{s_time}",
+                    'studentId': cs['studentId'],
+                    'studentName': student['name'],
+                    'date': curr_date_str,
+                    'startTime': s_time,
+                    'endTime': e_time,
+                    'status': status,
+                    'class': student.get('class', ''),
+                    'subject': subj,
+                    'remarks': record.get('remarks', ''),
+                    'staffName': record.get('staffName', ''),
+                    'title': f"{student['name']} ({subj})",
+                    'extendedProps': {
+                        'studentName': student['name'],
+                        'studentId': cs['studentId'],
+                        'date': curr_date_str,
+                        'startTime': s_time,
+                        'endTime': e_time,
+                        'status': status,
+                        'class': student.get('class', ''),
+                        'subject': subj,
+                        'remarks': record.get('remarks', ''),
+                        'staffName': record.get('staffName', '')
+                    }
+                })
+                logged_map.pop(key, None)
+            else:
+                calendar_events.append({
+                    'id': cs['id'],
+                    'studentId': cs['studentId'],
+                    'studentName': student['name'],
+                    'date': curr_date_str,
+                    'startTime': s_time,
+                    'endTime': e_time,
+                    'status': 'Upcoming Class',
+                    'class': student.get('class', ''),
+                    'subject': cs.get('subject') or 'Class',
+                    'remarks': 'Upcoming Scheduled Custom Class',
+                    'staffName': '',
+                    'title': f"{student['name']} ({cs.get('subject') or 'Class'})",
+                    'extendedProps': {
+                        'studentName': student['name'],
+                        'studentId': cs['studentId'],
+                        'date': curr_date_str,
+                        'startTime': s_time,
+                        'endTime': e_time,
+                        'status': 'Upcoming Class',
+                        'class': student.get('class', ''),
+                        'subject': cs.get('subject') or 'Class',
+                        'remarks': 'Upcoming Scheduled Custom Class',
+                        'staffName': ''
+                    }
+                })
                         
         curr_date += timedelta(days=1)
         

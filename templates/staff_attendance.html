@@ -701,6 +701,13 @@
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
 
+        .status-btn.no-class.selected {
+            background: #F59E0B;
+            color: white;
+            border-color: #F59E0B;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
         .status-btn:hover {
             transform: scale(1.02);
         }
@@ -2015,6 +2022,7 @@
                         <div class="card">
                             <div class="calendar-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs); gap: 1rem; flex-wrap: wrap;">
                                 <h2>📅 Student Attendance Calendar</h2>
+                                <button type="button" class="btn" onclick="openAddCustomClassModal()" style="background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; font-weight: 600; padding: 0.6rem 1.2rem; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">➕ Add Class Slot</button>
                             </div>
                             <!-- Glass filters row -->
                             <div class="calendar-filters-row">
@@ -2260,6 +2268,54 @@
         </div>
     </div>
 
+    <!-- Add Custom Class Modal -->
+    <div id="addCustomClassModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>➕ Add Custom Class Slot</h3>
+                <span class="close-modal" onclick="closeAddCustomClassModal()">&times;</span>
+            </div>
+            <form id="addCustomClassForm" onsubmit="saveCustomClassSlot(event)">
+                <div class="form-group">
+                    <label>Select Student <span style="color: var(--danger-color);">*</span></label>
+                    <select id="customClassStudentSelect" required style="padding: 0.6rem; font-size: 0.9rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date <span style="color: var(--danger-color);">*</span></label>
+                    <input type="date" id="customClassDate" required style="padding: 0.6rem; font-size: 0.9rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Start Time <span style="color: var(--danger-color);">*</span></label>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <input type="time" id="customClassStartTime" value="09:00" oninput="updateTimetableRow12h(this)" required style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                            <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">AM</button>
+                        </div>
+                        <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">9:00 AM</small>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time <span style="color: var(--danger-color);">*</span></label>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <input type="time" id="customClassEndTime" value="10:00" oninput="updateTimetableRow12h(this)" required style="padding: 0.5rem; font-size: 0.85rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                            <button type="button" class="ampm-toggle-btn" onclick="toggleInputAmPm(this)" style="padding: 0.5rem; font-size: 0.8rem; font-weight: bold; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--accent); border-radius: 8px; cursor: pointer; min-width: 44px; text-align: center; height: 38px;">AM</button>
+                        </div>
+                        <small class="time-12h-preview" style="font-size: 0.75rem; color: var(--accent); margin-top: 4px; display: block; font-weight: 600;">10:00 AM</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Subject / Topic (Optional)</label>
+                    <input type="text" id="customClassSubject" placeholder="e.g. Chemistry Revision" style="padding: 0.6rem; font-size: 0.9rem; width: 100%; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+                </div>
+                <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                    <button type="button" onclick="closeAddCustomClassModal()" class="btn-outline" style="flex: 1; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn" style="flex: 1; padding: 0.8rem; border-radius: 12px; font-weight: 600; cursor: pointer; background: var(--accent); color: white; border: none;">Save Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Calendar Event Detail Modal -->
     <div id="calendarEventModal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
@@ -2295,6 +2351,24 @@
             <div class="modal-actions" style="justify-content: center; gap: 1rem; margin-top: 1.5rem;">
                 <button id="confirmCancelBtn" type="button" onclick="closeConfirmModal()" class="btn-outline" style="min-width: 100px;">Cancel</button>
                 <button id="confirmYesBtn" type="button" class="btn-bulk-save" style="margin-top: 0; min-width: 100px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Prompt Modal -->
+    <div id="promptModal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header" style="position: relative;">
+                <h3 id="promptTitle">No Class Reason</h3>
+                <span class="close-modal" onclick="closePromptModal()" style="position: absolute; right: 0; top: 0;">&times;</span>
+            </div>
+            <div id="promptMessage" style="margin-top: 1rem; font-size: 0.95rem; color: var(--text-secondary);"></div>
+            <div style="margin-top: 1rem;">
+                <input type="text" id="promptInput" placeholder="Enter reason here..." style="width: 100%; padding: 0.8rem; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-card); color: var(--text-primary);">
+            </div>
+            <div class="modal-actions" style="justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" onclick="closePromptModal()" class="btn-outline" style="min-width: 100px;">Cancel</button>
+                <button id="promptSubmitBtn" type="button" class="btn-bulk-save" style="margin-top: 0; min-width: 100px;">Submit</button>
             </div>
         </div>
     </div>
@@ -2396,8 +2470,8 @@
 <script>
     const API_BASE = ''; 
     let students = []; 
-    let endedStudents = [];
     let attendanceRecords = []; 
+    let customClassSlots = [];
     let currentAttendanceSelections = {}; 
     let currentStaffName = 'Staff';
     let currentEditStudentId = null;
@@ -3000,6 +3074,112 @@
     let calendarInstance = null;
     let currentCalendarEventProps = null;
     
+    function openAddCustomClassModal() {
+        const studentSelect = document.getElementById('customClassStudentSelect');
+        if (!studentSelect) return;
+        
+        // Clear old options
+        studentSelect.innerHTML = '<option value="">-- Choose Student --</option>';
+        
+        // Sort students alphabetically by name
+        const activeStudents = students.filter(s => !s.isEnded).sort((a, b) => a.name.localeCompare(b.name));
+        
+        activeStudents.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.innerText = `${s.name} (${s.class || 'No Class'})`;
+            studentSelect.appendChild(opt);
+        });
+        
+        // Pre-fill date to today's date
+        const dateInput = document.getElementById('customClassDate');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+        }
+        
+        // Reset time inputs and previews
+        const startInput = document.getElementById('customClassStartTime');
+        const endInput = document.getElementById('customClassEndTime');
+        if (startInput) {
+            startInput.value = '09:00';
+            updateTimetableRow12h(startInput);
+        }
+        if (endInput) {
+            endInput.value = '10:00';
+            updateTimetableRow12h(endInput);
+        }
+        
+        // Reset subject
+        const subjectInput = document.getElementById('customClassSubject');
+        if (subjectInput) subjectInput.value = '';
+        
+        document.getElementById('addCustomClassModal').style.display = 'flex';
+    }
+    
+    function closeAddCustomClassModal() {
+        document.getElementById('addCustomClassModal').style.display = 'none';
+    }
+    
+    async function saveCustomClassSlot(event) {
+        event.preventDefault();
+        
+        const studentId = document.getElementById('customClassStudentSelect').value;
+        const date = document.getElementById('customClassDate').value;
+        const startTime = document.getElementById('customClassStartTime').value;
+        const endTime = document.getElementById('customClassEndTime').value;
+        const subjectInput = document.getElementById('customClassSubject').value.trim();
+        
+        if (!studentId || !date || !startTime || !endTime) {
+            showToast("❌ Please fill in all required fields");
+            return;
+        }
+        
+        const student = students.find(s => s.id === studentId);
+        if (!student) {
+            showToast("❌ Student not found");
+            return;
+        }
+        
+        const subject = subjectInput || student.class || 'Class';
+        
+        const payload = {
+            studentId: student.id,
+            date: date,
+            startTime: startTime,
+            endTime: endTime,
+            subject: subject
+        };
+        
+        try {
+            showToast("⏳ Saving class slot...");
+            const res = await fetch('/api/custom-class-slots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                showToast("✅ Class slot added and saved!");
+                closeAddCustomClassModal();
+                
+                // Refresh calendar events
+                if (calendarInstance) {
+                    calendarInstance.refetchEvents();
+                }
+                
+                // Refresh other views
+                await loadStudents();
+                await loadAttendance();
+            } else {
+                const data = await res.json();
+                showToast(`❌ Failed to save class slot: ${data.error || 'Server error'}`);
+            }
+        } catch (err) {
+            console.error("Error saving custom class slot:", err);
+            showToast("❌ Error saving class slot");
+        }
+    }
+    
     function initAttendanceCalendar() {
         const calendarEl = document.getElementById('attendanceCalendar');
         if (!calendarEl) return;
@@ -3332,13 +3512,13 @@
         const deleteBtn = document.getElementById('modalDeleteRecordBtn');
         
         if (presentBtn) {
-            presentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Present');
+            presentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Present', props.subject);
         }
         if (absentBtn) {
-            absentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Absent');
+            absentBtn.onclick = () => quickMarkAttendance(props.studentId, props.date, props.startTime, props.endTime, 'Absent', props.subject);
         }
         if (editRemarksBtn) {
-            editRemarksBtn.onclick = () => quickEditRemarks(props.id, props.studentId, props.date, props.startTime, props.endTime, props.remarks);
+            editRemarksBtn.onclick = () => quickEditRemarks(props.id, props.studentId, props.date, props.startTime, props.endTime, props.remarks, props.subject);
         }
         if (deleteBtn) {
             if (props.id.startsWith('upcoming_')) {
@@ -3356,7 +3536,7 @@
         document.getElementById('calendarEventModal').style.display = 'none';
     }
     
-    async function quickMarkAttendance(studentId, date, startTime, endTime, status) {
+    async function quickMarkAttendance(studentId, date, startTime, endTime, status, subject = null) {
         const student = students.find(s => s.id === studentId);
         if (!student) {
             showToast("❌ Student not found");
@@ -3380,7 +3560,7 @@
                 status: status,
                 startTime: startTime,
                 endTime: endTime,
-                subject: student.class || 'Class',
+                subject: subject || student.class || 'Class',
                 remarks: remarks
             }]
         };
@@ -3432,7 +3612,7 @@
         }
     }
     
-    async function quickEditRemarks(recordId, studentId, date, startTime, endTime, currentRemarks) {
+    async function quickEditRemarks(recordId, studentId, date, startTime, endTime, currentRemarks, subject = null) {
         const newRemarks = prompt("Edit remarks for this record:", currentRemarks || "");
         if (newRemarks === null) return;
         
@@ -3441,12 +3621,12 @@
         
         // Find existing status or default to Present
         let status = 'Present';
-        if (calendarInstance && !recordId.startsWith('upcoming_')) {
+        if (calendarInstance && recordId && !recordId.startsWith('upcoming_')) {
             const fcEvent = calendarInstance.getEventById(recordId);
             if (fcEvent && fcEvent.extendedProps) {
                 status = fcEvent.extendedProps.status;
             }
-        } else if (recordId.startsWith('upcoming_')) {
+        } else if (!recordId || recordId.startsWith('upcoming_')) {
             status = confirm("Mark as Present? (Click OK for Present, Cancel for Absent)") ? 'Present' : 'Absent';
         }
         
@@ -3460,7 +3640,7 @@
                 status: status,
                 startTime: startTime,
                 endTime: endTime,
-                subject: student.class || 'Class',
+                subject: subject || student.class || 'Class',
                 remarks: newRemarks.trim()
             }]
         };
@@ -3516,7 +3696,7 @@
                 status: status,
                 startTime: startTime,
                 endTime: endTime,
-                subject: student.class || 'Class',
+                subject: (currentCalendarEventProps && currentCalendarEventProps.subject) || student.class || 'Class',
                 remarks: remarks
             }]
         };
@@ -3627,7 +3807,7 @@
                 status: status,
                 startTime: startTime,
                 endTime: endTime,
-                subject: student.class || 'Class',
+                subject: (currentCalendarEventProps && currentCalendarEventProps.subject) || student.class || 'Class',
                 remarks: newRemarks.trim()
             }]
         };
@@ -3667,11 +3847,36 @@
     }
 
     async function loadStudents() {
-        try { const res = await fetch('/api/students'); if (res.ok) { students = await res.json(); students.forEach(s => { if (!s.days) s.days = []; if (!s.feePaidAmount) s.feePaidAmount = 0; if (!s.paymentHistory) s.paymentHistory = []; if (!currentAttendanceSelections[s.id]) currentAttendanceSelections[s.id] = { status: 'Present', inTime: s.classStartTime || '09:00', outTime: s.classEndTime || '17:00', date: new Date().toISOString().slice(0,10) }; }); checkAllStudentProgress(); renderAll(); } else { students = []; renderAll(); } } catch(e) { students = []; renderAll(); }
+        try { const res = await fetch('/api/students'); if (res.ok) { students = await res.json(); students.forEach(s => { if (!s.days) s.days = []; if (!s.feePaidAmount) s.feePaidAmount = 0; if (!s.paymentHistory) s.paymentHistory = []; }); checkAllStudentProgress(); renderAll(); } else { students = []; renderAll(); } } catch(e) { students = []; renderAll(); }
         syncStudentsToServiceWorker();
     }
+    async function loadCustomClassSlots() {
+        try {
+            const res = await fetch('/api/custom-class-slots');
+            if (res.ok) {
+                customClassSlots = await res.json();
+            } else {
+                customClassSlots = [];
+            }
+        } catch(e) {
+            customClassSlots = [];
+        }
+    }
     async function loadAttendance() {
-        try { const res = await fetch('/api/attendance'); if (res.ok) { attendanceRecords = await res.json(); checkAllStudentProgress(); renderAll(); } else { attendanceRecords = []; renderAll(); } } catch(e) { attendanceRecords = []; renderAll(); }
+        try {
+            const res = await fetch('/api/attendance');
+            if (res.ok) {
+                attendanceRecords = await res.json();
+            } else {
+                attendanceRecords = [];
+            }
+            await loadCustomClassSlots();
+            checkAllStudentProgress();
+            renderAll();
+        } catch(e) {
+            attendanceRecords = [];
+            renderAll();
+        }
         syncMarkedStudentsToServiceWorker();
         await loadNoClassAuditLogs();
     }
@@ -3702,7 +3907,10 @@
             date: sel.date,
             startTime: startTime,
             endTime: endTime,
-            subject: subject
+            subject: subject,
+            reason: sel.reason || '',
+            remarks: sel.remarks || '',
+            type: sel.status === 'No Class' ? 'partial' : ''
         }];
         const res = await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance: data }) });
         if (res.ok) { showToast(`✅ Saved for ${s.name} (${subject})!`); await loadAttendance(); } else { showToast("❌ Failed"); }
@@ -3712,12 +3920,30 @@
         const data = [];
         
         students.forEach(s => {
-            let timetable = s.timetable || [];
-            if (timetable.length === 0) {
-                timetable = [{ startTime: s.classStartTime || '09:00', endTime: s.classEndTime || '17:00', subject: s.class || 'Class' }];
+            let slots = (s.timetable || []).map(slot => ({
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                subject: slot.subject || s.class || 'Class'
+            }));
+            if (slots.length === 0) {
+                slots = [{ startTime: s.classStartTime || '09:00', endTime: s.classEndTime || '17:00', subject: s.class || 'Class' }];
             }
             
-            timetable.forEach(slot => {
+            // Add custom class slots for this student on the selected date
+            const studentCustomSlots = (customClassSlots || []).filter(cs => 
+                cs.studentId === s.id && 
+                cs.date === dateInput && 
+                cs.isDeleted !== true
+            );
+            studentCustomSlots.forEach(cs => {
+                slots.push({
+                    startTime: cs.startTime,
+                    endTime: cs.endTime,
+                    subject: cs.subject || 'Class'
+                });
+            });
+            
+            slots.forEach(slot => {
                 const subjectName = slot.subject || s.class || 'Class';
                 if (currentSubjectFilter !== 'All' && subjectName !== currentSubjectFilter) {
                     return;
@@ -3742,7 +3968,10 @@
                     date: sel.date,
                     startTime: slot.startTime,
                     endTime: slot.endTime,
-                    subject: slot.subject
+                    subject: subjectName,
+                    reason: sel.reason || '',
+                    remarks: sel.remarks || '',
+                    type: sel.status === 'No Class' ? 'partial' : ''
                 });
             });
         });
@@ -3805,8 +4034,8 @@
         );
     }
     
-    function setAttendanceDateToday() { const today = new Date().toISOString().slice(0,10); document.getElementById('attendanceDate').value = today; students.forEach(s => { if (currentAttendanceSelections[s.id]) currentAttendanceSelections[s.id].date = today; else currentAttendanceSelections[s.id] = { status: 'Present', inTime: s.classStartTime || '09:00', outTime: s.classEndTime || '17:00', date: today }; }); renderAttendancePageList(); showToast(`📅 Set to today`); }
-    function updateAllAttendanceDates(date) { students.forEach(s => { if (currentAttendanceSelections[s.id]) currentAttendanceSelections[s.id].date = date; else currentAttendanceSelections[s.id] = { status: 'Present', inTime: s.classStartTime || '09:00', outTime: s.classEndTime || '17:00', date: date }; }); renderAttendancePageList(); showToast(`📅 Date updated`); }
+    function setAttendanceDateToday() { const today = new Date().toISOString().slice(0,10); const d = document.getElementById('attendanceDate'); if (d) d.value = today; currentAttendanceSelections = {}; renderAttendancePageList(); showToast(`📅 Set to today`); }
+    function updateAllAttendanceDates(date) { currentAttendanceSelections = {}; renderAttendancePageList(); showToast(`📅 Date updated`); }
     
     // Render functions with 12-hour time display
     function renderDashboardStudentList() {
@@ -3864,7 +4093,7 @@
         const container = document.getElementById('studentsAttendanceList');
         if (!container) return;
 
-        // 1. Gather all unique subjects from active students
+        // 1. Gather all unique subjects from active students and custom class slots
         const uniqueSubjects = new Set();
         students.forEach(s => {
             if (s.isEnded === true) return;
@@ -3877,6 +4106,11 @@
                         uniqueSubjects.add(slot.subject);
                     }
                 });
+            }
+        });
+        (customClassSlots || []).forEach(cs => {
+            if (cs.subject && cs.isDeleted !== true) {
+                uniqueSubjects.add(cs.subject);
             }
         });
         const subjectList = Array.from(uniqueSubjects).sort();
@@ -3907,12 +4141,31 @@
         
         let html = '';
         filtered.forEach(s => {
-            let timetable = s.timetable || [];
-            if (timetable.length === 0) {
-                timetable = [{ startTime: s.classStartTime || '09:00', endTime: s.classEndTime || '17:00', subject: s.class || 'Class' }];
+            let slots = (s.timetable || []).map(slot => ({
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                subject: slot.subject || s.class || 'Class'
+            }));
+            if (slots.length === 0) {
+                slots = [{ startTime: s.classStartTime || '09:00', endTime: s.classEndTime || '17:00', subject: s.class || 'Class' }];
             }
             
-            timetable.forEach(slot => {
+            // Add custom class slots for this student on the selected date
+            const targetDate = dateInput.value;
+            const studentCustomSlots = (customClassSlots || []).filter(cs => 
+                cs.studentId === s.id && 
+                cs.date === targetDate && 
+                cs.isDeleted !== true
+            );
+            studentCustomSlots.forEach(cs => {
+                slots.push({
+                    startTime: cs.startTime,
+                    endTime: cs.endTime,
+                    subject: cs.subject || 'Class'
+                });
+            });
+            
+            slots.forEach(slot => {
                 const subjectName = slot.subject || s.class || 'Class';
                 
                 // Filter by subject if active
@@ -3921,19 +4174,37 @@
                 }
 
                 const key = `${s.id}_${slot.startTime}_${slot.endTime}`;
-                const sel = currentAttendanceSelections[key] || {
-                    status: 'Present',
-                    inTime: slot.startTime,
-                    outTime: slot.endTime,
-                    date: dateInput.value
-                };
+                const targetDate = (currentAttendanceSelections[key] && currentAttendanceSelections[key].date)
+                    ? currentAttendanceSelections[key].date
+                    : dateInput.value;
                 
                 // Match existing slot
                 const existing = attendanceRecords.find(r => 
                     r.studentId === s.id && 
-                    r.date === sel.date && 
+                    r.date === targetDate && 
                     (r.startTime === slot.startTime || (!r.startTime && slot.startTime === (s.classStartTime || '09:00')))
                 );
+
+                if (!currentAttendanceSelections[key]) {
+                    if (existing) {
+                        currentAttendanceSelections[key] = {
+                            status: existing.status,
+                            inTime: existing.inTime || slot.startTime,
+                            outTime: existing.outTime || slot.endTime,
+                            date: targetDate,
+                            reason: existing.reason || '',
+                            remarks: existing.remarks || ''
+                        };
+                    } else {
+                        currentAttendanceSelections[key] = {
+                            status: 'Present',
+                            inTime: slot.startTime,
+                            outTime: slot.endTime,
+                            date: targetDate
+                        };
+                    }
+                }
+                const sel = currentAttendanceSelections[key];
                 
                 let existingBadge = '';
                 if (existing) {
@@ -3946,7 +4217,7 @@
                 }
                 
                 html += `
-                <div class="attendance-card">
+                <div class="attendance-card" id="card_${key}">
                     <div class="attendance-header">
                         <div>
                             <h4 style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -3956,12 +4227,13 @@
                             <p style="margin-top: 4px;">📞 ${s.phone || 'No phone'} | ${escapeHtml(s.class || 'N/A')}</p>
                             <div style="margin-top: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                 <span class="working-day-badge" style="margin: 0; background: var(--bg-body); color: var(--text-secondary);">⏰ Slot: ${formatTimeForDisplay(slot.startTime)} - ${formatTimeForDisplay(slot.endTime)}</span>
-                                ${existingBadge}
+                                <span id="badge_${key}">${existingBadge}</span>
                             </div>
                         </div>
                         <div class="attendance-status-buttons">
-                            <button class="status-btn present ${sel.status === 'Present' ? 'selected' : ''}" onclick="setSelStatus('${key}','Present')">✅ Present</button>
-                            <button class="status-btn absent ${sel.status === 'Absent' ? 'selected' : ''}" onclick="setSelStatus('${key}','Absent')">❌ Absent</button>
+                            <button id="btn_present_${key}" class="status-btn present ${sel.status === 'Present' ? 'selected' : ''}" onclick="setSelStatus('${key}','Present')">✅ Present</button>
+                            <button id="btn_absent_${key}" class="status-btn absent ${sel.status === 'Absent' ? 'selected' : ''}" onclick="setSelStatus('${key}','Absent')">❌ Absent</button>
+                            <button id="btn_noclass_${key}" class="status-btn no-class ${sel.status === 'No Class' ? 'selected' : ''}" onclick="setSelNoClass('${key}', '${escapeHtml(s.name)}')">🚫 No Class</button>
                         </div>
                     </div>
                     <div class="attendance-timing">
@@ -3973,12 +4245,12 @@
                             <label>Out</label>
                             <input type="time" id="outTime_${key}" value="${sel.outTime}" onchange="setSelOutTime('${key}',this.value)" style="border-radius: 8px; background: var(--surface); border: 1px solid var(--border-card); color: var(--text-primary);">
                         </div>
+                        <div class="timing-field">
+                            <label>Date</label>
+                            <input type="date" id="date_${key}" value="${sel.date}" onchange="setSelDate('${key}',this.value)" style="border-radius: 8px; background: var(--surface); border: 1px solid var(--border-card); color: var(--text-primary);">
+                        </div>
                     </div>
-                    <div class="attendance-date-field" style="display: none;">
-                        <label>Date</label>
-                        <input type="date" id="date_${key}" value="${sel.date}" onchange="setSelDate('${key}',this.value)">
-                    </div>
-                    <button class="save-individual-btn" onclick="saveIndividualAttendance('${s.id}', '${slot.startTime}', '${slot.endTime}', '${escapeHtml(slot.subject)}')" style="cursor: pointer; font-weight: 600;">
+                    <button id="btn_save_${key}" class="save-individual-btn" onclick="saveIndividualAttendance('${s.id}', '${slot.startTime}', '${slot.endTime}', '${escapeHtml(slot.subject)}')" style="cursor: pointer; font-weight: 600;">
                         ${existing ? '🔄 Update' : '💾 Save'}
                     </button>
                 </div>`;
@@ -4199,6 +4471,15 @@
         });
     }
     
+    function updateCardStatusUI(key, status) {
+        const btnPresent = document.getElementById(`btn_present_${key}`);
+        const btnAbsent = document.getElementById(`btn_absent_${key}`);
+        const btnNoClass = document.getElementById(`btn_noclass_${key}`);
+        if (btnPresent) btnPresent.classList.toggle('selected', status === 'Present');
+        if (btnAbsent) btnAbsent.classList.toggle('selected', status === 'Absent');
+        if (btnNoClass) btnNoClass.classList.toggle('selected', status === 'No Class');
+    }
+
     function setSelStatus(key, status) {
         if (!currentAttendanceSelections[key]) {
             const parts = key.split('_');
@@ -4210,7 +4491,7 @@
             };
         }
         currentAttendanceSelections[key].status = status;
-        renderAttendancePageList();
+        updateCardStatusUI(key, status);
     }
     
     function setSelInTime(key, inTime) {
@@ -4240,18 +4521,60 @@
     }
     
     function setSelDate(key, date) {
-        if (!currentAttendanceSelections[key]) {
-            const parts = key.split('_');
+        const parts = key.split('_');
+        const studentId = parts[0];
+        const startTime = parts[1];
+        const endTime = parts[2];
+        const existing = attendanceRecords.find(r => 
+            r.studentId === studentId && 
+            r.date === date && 
+            (r.startTime === startTime || (!r.startTime && startTime === (students.find(s => s.id === studentId)?.classStartTime || '09:00')))
+        );
+        if (existing) {
             currentAttendanceSelections[key] = {
-                status: 'Present',
-                inTime: parts[1],
-                outTime: parts[2],
-                date: date
+                status: existing.status,
+                inTime: existing.inTime || startTime,
+                outTime: existing.outTime || endTime,
+                date: date,
+                reason: existing.reason || '',
+                remarks: existing.remarks || ''
             };
         } else {
-            currentAttendanceSelections[key].date = date;
+            currentAttendanceSelections[key] = {
+                status: 'Present',
+                inTime: startTime,
+                outTime: endTime,
+                date: date,
+                reason: '',
+                remarks: ''
+            };
         }
-        renderAttendancePageList();
+        
+        // Update DOM inputs directly
+        const inTimeInput = document.getElementById(`inTime_${key}`);
+        if (inTimeInput) inTimeInput.value = currentAttendanceSelections[key].inTime;
+        
+        const outTimeInput = document.getElementById(`outTime_${key}`);
+        if (outTimeInput) outTimeInput.value = currentAttendanceSelections[key].outTime;
+        
+        updateCardStatusUI(key, currentAttendanceSelections[key].status);
+        
+        const saveBtn = document.getElementById(`btn_save_${key}`);
+        if (saveBtn) saveBtn.innerHTML = existing ? '🔄 Update' : '💾 Save';
+        
+        const badgeSpan = document.getElementById(`badge_${key}`);
+        if (badgeSpan) {
+            if (existing) {
+                if (existing.status === 'No Class') {
+                    const icon = existing.type === 'partial' ? '⏱️' : '🚫';
+                    badgeSpan.innerHTML = `<span class="badge no-class" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; text-transform: none; display: inline-flex; align-items: center; gap: 3px; border: 1px solid rgba(245, 158, 11, 0.3);">${icon} ${existing.reason || 'No Class'}</span>`;
+                } else {
+                    badgeSpan.innerHTML = `<span class="badge ${existing.status === 'Present' ? 'present' : 'absent'}" style="font-size: 0.7rem;">✓ ${existing.status}</span>`;
+                }
+            } else {
+                badgeSpan.innerHTML = '';
+            }
+        }
     }
     
     function viewStudentDetails(id, eventProps = null) {
@@ -4519,7 +4842,7 @@
     document.getElementById('recordsSearchInput')?.addEventListener('input', () => renderRecordsPage());
     document.getElementById('feeSearchInput')?.addEventListener('input', () => renderFeeManagementList());
     document.getElementById('endedSearchInput')?.addEventListener('input', () => renderEndedStudentsList());
-    document.getElementById('attendanceDate')?.addEventListener('change', (e) => { students.forEach(s => { if (currentAttendanceSelections[s.id]) currentAttendanceSelections[s.id].date = e.target.value; }); renderAttendancePageList(); });
+    document.getElementById('attendanceDate')?.addEventListener('change', (e) => { currentAttendanceSelections = {}; renderAttendancePageList(); });
     
     // No Class form validation listeners
     document.getElementById('fullDayReason')?.addEventListener('change', validateNoClassForms);
@@ -4709,6 +5032,59 @@ exit`;
         }
         closeConfirmModal();
     };
+
+    // Custom Prompt Modal Logic
+    let promptCallback = null;
+    function showPromptModal(title, message, callback) {
+        document.getElementById('promptTitle').innerText = title;
+        document.getElementById('promptMessage').innerText = message;
+        document.getElementById('promptInput').value = '';
+        promptCallback = callback;
+        document.getElementById('promptModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('promptInput').focus(), 50);
+    }
+    function closePromptModal() {
+        document.getElementById('promptModal').style.display = 'none';
+        promptCallback = null;
+    }
+    document.getElementById('promptSubmitBtn').onclick = function() {
+        const val = document.getElementById('promptInput').value.trim();
+        if (!val) {
+            showToast("⚠️ Please enter a reason");
+            return;
+        }
+        if (promptCallback) {
+            promptCallback(val);
+        }
+        closePromptModal();
+    };
+    document.getElementById('promptInput').onkeydown = function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('promptSubmitBtn').click();
+        }
+    };
+
+    function setSelNoClass(key, studentName) {
+        showPromptModal(
+            "🚫 Mark No Class",
+            `Enter the reason for marking "No Class" for ${studentName}:`,
+            function(reason) {
+                if (!currentAttendanceSelections[key]) {
+                    const parts = key.split('_');
+                    currentAttendanceSelections[key] = {
+                        status: 'No Class',
+                        inTime: parts[1],
+                        outTime: parts[2],
+                        date: document.getElementById('attendanceDate').value || new Date().toISOString().slice(0,10)
+                    };
+                }
+                currentAttendanceSelections[key].status = 'No Class';
+                currentAttendanceSelections[key].reason = reason;
+                currentAttendanceSelections[key].remarks = `No Class (${reason})`;
+                updateCardStatusUI(key, 'No Class');
+            }
+        );
+    }
 
     // Timetable Row Builder Logic
     function createTimetableRowHtml(containerId, index, startTime = '09:00', endTime = '10:00', subject = '') {
