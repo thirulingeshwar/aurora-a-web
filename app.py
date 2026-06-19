@@ -1209,45 +1209,60 @@ def get_students_by_subject():
         return jsonify({'error': 'Unauthorized'}), 401
     
     try:
+        # Build a lookup map: staffId -> fullName from current staff accounts
         all_staff = list(staff_collection.find())
-        subject_map = {}
+        staff_name_map = {s.get('staffId'): s.get('fullName', 'Unknown Staff') for s in all_staff}
         
-        for staff in all_staff:
-            staff_id = staff.get('staffId')
-            staff_name = staff.get('fullName', 'Unknown')
+        subject_map = {}
+        all_cols = db.list_collection_names()
+        
+        # Scan ALL staff_students_* collections regardless of whether staff account exists
+        for col_name in all_cols:
+            if not col_name.startswith('staff_students_'):
+                continue
             
-            col_name = f"staff_students_{staff_id}"
-            if col_name in db.list_collection_names():
-                students = list(db[col_name].find({'isEnded': {'$ne': True}}))
-                for stud in students:
-                    stud_serialized = serialize_doc(stud)
-                    stud_serialized['staffName'] = staff_name
-                    stud_serialized['staffId'] = staff_id
+            # Extract staffId from collection name
+            staff_id = col_name[len('staff_students_'):]
+            if not staff_id or staff_id == 'None':
+                continue
+            
+            # Get staff name — use account name if known, otherwise mark as Former Staff
+            staff_name = staff_name_map.get(staff_id, f'Former Staff ({staff_id[:8]})')
+            
+            # Get all non-ended students from this collection
+            students = list(db[col_name].find({'isEnded': {'$ne': True}}))
+            
+            for stud in students:
+                stud_serialized = serialize_doc(stud)
+                stud_serialized['staffName'] = staff_name
+                stud_serialized['staffId'] = staff_id
+                
+                student_subjects = set()
+                
+                # 1. Use student's class field
+                s_class = (stud.get('class') or '').strip()
+                if s_class:
+                    student_subjects.add(s_class.title())
                     
-                    student_subjects = set()
+                # 2. Use subjects from timetable slots
+                timetable = stud.get('timetable') or []
+                for slot in timetable:
+                    s_subj = (slot.get('subject') or '').strip()
+                    if s_subj:
+                        student_subjects.add(s_subj.title())
+                        
+                # Fallback: use 'General' if no subject found
+                if not student_subjects:
+                    student_subjects.add('General')
                     
-                    # 1. student's class
-                    s_class = stud.get('class', '').strip()
-                    if s_class:
-                        student_subjects.add(s_class.title())
+                for sub in student_subjects:
+                    if sub not in subject_map:
+                        subject_map[sub] = []
+                    # Avoid duplicates by student id
+                    stud_id = stud_serialized.get('id') or str(stud_serialized.get('_id', ''))
+                    if not any((x.get('id') or '') == stud_id for x in subject_map[sub]):
+                        subject_map[sub].append(stud_serialized)
                         
-                    # 2. student's timetable slot subjects
-                    timetable = stud.get('timetable', [])
-                    for slot in timetable:
-                        s_subj = slot.get('subject', '').strip()
-                        if s_subj:
-                            student_subjects.add(s_subj.title())
-                            
-                    # Fallback if no subject at all
-                    if not student_subjects:
-                        student_subjects.add("Class")
-                        
-                    for sub in student_subjects:
-                        if sub not in subject_map:
-                            subject_map[sub] = []
-                        if not any(x['id'] == stud_serialized['id'] for x in subject_map[sub]):
-                            subject_map[sub].append(stud_serialized)
-                            
         return jsonify(subject_map)
     except Exception as e:
         print(f"Error in get_students_by_subject: {e}")

@@ -1314,9 +1314,16 @@
                                             <tr>
                                                 <th>Student Name</th>
                                                 <th>Class/Subject</th>
-                                                <th>Taught By</th>
+                                                <th>Staff</th>
                                                 <th>Branch</th>
                                                 <th>Phone</th>
+                                                <th>Parent Name</th>
+                                                <th>Parent Phone</th>
+                                                <th>Working Days</th>
+                                                <th>Timing</th>
+                                                <th>Total Days</th>
+                                                <th>Fee (₹)</th>
+                                                <th>Fee Status</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -1608,133 +1615,170 @@
         }
 
         let studentsBySubject = {};
+        let _currentSubject = null;
 
         async function loadSubjectStudents() {
+            const grid = document.getElementById('subjectsCardGrid');
+            if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:var(--spacing-lg);">Loading subject data...</div>';
             try {
                 const response = await fetch('/api/admin/students_by_subject');
                 if (response.ok) {
                     studentsBySubject = await response.json();
-                    renderSubjectCards();
+                } else {
+                    studentsBySubject = {};
                 }
             } catch (error) {
-                console.error("Error loading subject-student data:", error);
+                console.error('Error loading subject-student data:', error);
+                studentsBySubject = {};
             }
+            renderSubjectCards();
+        }
+
+        function getSubjectIcon(name) {
+            const l = name.toLowerCase();
+            if (l.includes('math')) return '📐';
+            if (l.includes('english')) return '📚';
+            if (l.includes('robot')) return '🤖';
+            if (l.includes('science')) return '🧪';
+            if (l.includes('physic')) return '⚛️';
+            if (l.includes('chemi')) return '🧪';
+            if (l.includes('computer') || l.includes('code') || l.includes('program')) return '💻';
+            if (l.includes('history')) return '📜';
+            if (l.includes('art')) return '🎨';
+            if (l.includes('music')) return '🎵';
+            if (l.includes('bio')) return '🌿';
+            return '📖';
         }
 
         function renderSubjectCards() {
             const grid = document.getElementById('subjectsCardGrid');
             if (!grid) return;
-            
             const subjects = Object.keys(studentsBySubject);
             if (subjects.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: var(--spacing-lg);">No subjects found or database empty</div>';
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-secondary);padding:var(--spacing-lg);">No subjects found. Make sure students are added with a class/subject name.</div>';
                 return;
             }
-            
-            function getSubjectIcon(subjectName) {
-                const lower = subjectName.toLowerCase();
-                if (lower.includes('math')) return '📐';
-                if (lower.includes('english')) return '📚';
-                if (lower.includes('robot')) return '🤖';
-                if (lower.includes('science')) return '🧪';
-                if (lower.includes('physic')) return '⚛️';
-                if (lower.includes('chemistry')) return '🧪';
-                if (lower.includes('computer') || lower.includes('code') || lower.includes('programming')) return '💻';
-                if (lower.includes('history')) return '📜';
-                if (lower.includes('art')) return '🎨';
-                if (lower.includes('music')) return '🎵';
-                return '📖';
-            }
-            
-            grid.innerHTML = subjects.map(sub => {
+            // Build cards using data attributes — no escapeHtml inside onclick
+            grid.innerHTML = subjects.map((sub, i) => {
                 const count = studentsBySubject[sub].length;
-                return `
-                    <div class="subject-card" id="card-${sub.replace(/\s+/g, '-')}" onclick="selectSubject('${escapeHtml(sub)}')">
-                        <div class="subject-icon">${getSubjectIcon(sub)}</div>
-                        <div class="subject-name">${escapeHtml(sub)}</div>
-                        <div class="student-count">${count} Student${count !== 1 ? 's' : ''}</div>
-                    </div>
-                `;
+                return `<div class="subject-card" data-subject-index="${i}">
+                    <div class="subject-icon">${getSubjectIcon(sub)}</div>
+                    <div class="subject-name">${escapeHtml(sub)}</div>
+                    <div class="student-count">${count} Student${count !== 1 ? 's' : ''}</div>
+                </div>`;
             }).join('');
+
+            // Attach click listeners AFTER rendering
+            grid.querySelectorAll('.subject-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const idx = parseInt(this.getAttribute('data-subject-index'), 10);
+                    const sub = Object.keys(studentsBySubject)[idx];
+                    grid.querySelectorAll('.subject-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    _currentSubject = sub;
+                    renderStudentTable(sub);
+                });
+            });
         }
 
-        function selectSubject(sub) {
-            document.querySelectorAll('.subject-card').forEach(card => card.classList.remove('active'));
-            const selectedCard = document.getElementById(`card-${sub.replace(/\s+/g, '-')}`);
-            if (selectedCard) selectedCard.classList.add('active');
-            
+        function fmtTime12h(t) {
+            if (!t) return 'N/A';
+            try {
+                const [h, m] = t.split(':');
+                const hr = parseInt(h, 10);
+                return `${hr % 12 || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+            } catch(e) { return t; }
+        }
+
+        function getFeeStatusHtml(student) {
+            const now = new Date();
+            const currentMonth = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+            const paid = student.feePaidForMonth;
+            if (!paid) return '<span style="color:#ef4444;font-weight:600;">❌ Unpaid</span>';
+            if (paid === currentMonth) return '<span style="color:#10b981;font-weight:600;">✅ Paid</span>';
+            return `<span style="color:#f59e0b;font-weight:600;">⚠️ ${escapeHtml(paid)}</span>`;
+        }
+
+        function renderStudentTable(sub) {
             const container = document.getElementById('subjectStudentsContainer');
             container.style.display = 'block';
-            
-            document.getElementById('selectedSubjectTitle').innerText = `Students in ${sub}`;
-            
+            document.getElementById('selectedSubjectTitle').innerText = `📋 Students in: ${sub}`;
             const tbody = document.getElementById('subjectStudentsTableBody');
             const students = studentsBySubject[sub] || [];
-            
+
             if (students.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-secondary);">No active students registered under ${escapeHtml(sub)}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;color:var(--text-secondary);padding:2rem;">No active students registered under this subject.</td></tr>`;
                 return;
             }
-            
-            tbody.innerHTML = students.map((student, idx) => `
-                <tr>
+
+            tbody.innerHTML = students.map((student, idx) => {
+                const days = (student.days && student.days.length) ? student.days.map(d => d.substring(0,3)).join(', ') : 'N/A';
+                const timing = (student.classStartTime && student.classEndTime)
+                    ? `${fmtTime12h(student.classStartTime)} – ${fmtTime12h(student.classEndTime)}`
+                    : 'N/A';
+                return `<tr>
                     <td data-label="Student Name"><strong>${escapeHtml(student.name)}</strong></td>
-                    <td data-label="Class/Subject">${escapeHtml(student.class || 'N/A')}</td>
-                    <td data-label="Taught By"><span style="color: var(--primary); font-weight: 600;">${escapeHtml(student.staffName || 'N/A')}</span></td>
+                    <td data-label="Class/Subject"><span style="background:rgba(255,107,0,0.1);color:var(--primary);padding:2px 8px;border-radius:12px;font-size:0.8rem;font-weight:600;">${escapeHtml(student.class || 'N/A')}</span></td>
+                    <td data-label="Staff"><span style="color:var(--primary);font-weight:600;">${escapeHtml(student.staffName || 'N/A')}</span></td>
                     <td data-label="Branch">${escapeHtml(student.branch || 'N/A')}</td>
                     <td data-label="Phone">${escapeHtml(student.phone || 'N/A')}</td>
+                    <td data-label="Parent Name">${escapeHtml(student.parentName || 'N/A')}</td>
+                    <td data-label="Parent Phone">${escapeHtml(student.parentPhone || 'N/A')}</td>
+                    <td data-label="Working Days"><span style="font-size:0.8rem;">${escapeHtml(days)}</span></td>
+                    <td data-label="Timing"><span style="font-size:0.8rem;white-space:nowrap;">${escapeHtml(timing)}</span></td>
+                    <td data-label="Total Days" style="text-align:center;">${student.totalClassDays || 30}</td>
+                    <td data-label="Fee (₹)" style="font-weight:600;">₹${student.feeAmount || 0}</td>
+                    <td data-label="Fee Status">${getFeeStatusHtml(student)}</td>
                     <td data-label="Actions">
-                        <button class="open-staff-btn" onclick="viewStudentDetail('${sub.replace(/'/g, "\\'")}', ${idx})" style="background: rgba(255, 107, 0, 0.1); color: var(--primary); border-color: rgba(255, 107, 0, 0.3);">👁️ View</button>
+                        <button class="open-staff-btn view-student-btn" data-sub="${escapeHtml(sub)}" data-idx="${idx}" style="background:rgba(255,107,0,0.1);color:var(--primary);border-color:rgba(255,107,0,0.3);">👁️ View</button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
+
+            // Attach view button listeners AFTER rendering
+            tbody.querySelectorAll('.view-student-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const s = this.getAttribute('data-sub');
+                    const i = parseInt(this.getAttribute('data-idx'), 10);
+                    viewStudentDetail(s, i);
+                });
+            });
         }
 
         function viewStudentDetail(sub, idx) {
-            const student = studentsBySubject[sub][idx];
+            const student = studentsBySubject[sub] && studentsBySubject[sub][idx];
             if (!student) return;
-            
-            const daysHtml = student.days && student.days.length ? student.days.map(d => `<span style="background: var(--primary-glow); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-right: 4px; display: inline-block; margin-bottom: 2px;">${d}</span>`).join(' ') : 'N/A';
-            
-            function formatTime12h(timeStr) {
-                if (!timeStr) return 'N/A';
-                try {
-                    const [hour, minute] = timeStr.split(':');
-                    const h = parseInt(hour, 10);
-                    const ampm = h >= 12 ? 'PM' : 'AM';
-                    const displayH = h % 12 || 12;
-                    return `${displayH}:${minute} ${ampm}`;
-                } catch(e) {
-                    return timeStr;
-                }
-            }
-            
+
+            const daysHtml = (student.days && student.days.length)
+                ? student.days.map(d => `<span style="background:var(--primary-glow);color:var(--primary);padding:2px 6px;border-radius:4px;font-size:0.8rem;font-weight:600;margin-right:4px;display:inline-block;margin-bottom:2px;">${escapeHtml(d)}</span>`).join('')
+                : 'N/A';
+
             const content = document.getElementById('viewStudentContent');
             content.innerHTML = `
-                <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); margin-top: var(--spacing-xs); border-bottom: 1px solid var(--border-card); padding-bottom: 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">📝 Basic Details</div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Name</strong><span style="font-weight:600;">${escapeHtml(student.name)}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Student ID</strong><span><code>${escapeHtml(student.id)}</code></span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Phone</strong><span>${escapeHtml(student.phone || 'N/A')}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Branch</strong><span>${escapeHtml(student.branch || 'N/A')}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Class / Subject</strong><span>${escapeHtml(student.class || 'N/A')}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Taught By Staff</strong><span style="font-weight:600; color: var(--primary);">${escapeHtml(student.staffName || 'N/A')}</span></div>
-                <div style="grid-column: 1 / -1;" class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Address</strong><span>${escapeHtml(student.address || 'N/A')}</span></div>
+                <div style="grid-column:1/-1;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border-card);padding-bottom:4px;font-size:0.95rem;">📝 Basic Details</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Name</strong><span style="font-weight:600;">${escapeHtml(student.name)}</span></div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Student ID</strong><code>${escapeHtml(student.id || 'N/A')}</code></div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Phone</strong>${escapeHtml(student.phone || 'N/A')}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Branch</strong>${escapeHtml(student.branch || 'N/A')}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Class / Subject</strong>${escapeHtml(student.class || 'N/A')}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Staff</strong><span style="font-weight:600;color:var(--primary);">${escapeHtml(student.staffName || 'N/A')}</span></div>
+                <div class="student-info-item" style="grid-column:1/-1;"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Address</strong>${escapeHtml(student.address || 'N/A')}</div>
 
-                <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); margin-top: var(--spacing-sm); border-bottom: 1px solid var(--border-card); padding-bottom: 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">👪 Parent Information</div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Parent Name</strong><span>${escapeHtml(student.parentName || 'N/A')}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Parent Phone</strong><span>${escapeHtml(student.parentPhone || 'N/A')}</span></div>
+                <div style="grid-column:1/-1;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border-card);padding-bottom:4px;font-size:0.95rem;margin-top:var(--spacing-sm);">👪 Parent Information</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Parent Name</strong>${escapeHtml(student.parentName || 'N/A')}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Parent Phone</strong>${escapeHtml(student.parentPhone || 'N/A')}</div>
 
-                <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); margin-top: var(--spacing-sm); border-bottom: 1px solid var(--border-card); padding-bottom: 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">⏱️ Class Timings</div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Start Time</strong><span>${formatTime12h(student.classStartTime)}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">End Time</strong><span>${formatTime12h(student.classEndTime)}</span></div>
-                <div style="grid-column: 1 / -1;" class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Working Days</strong><span>${daysHtml}</span></div>
+                <div style="grid-column:1/-1;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border-card);padding-bottom:4px;font-size:0.95rem;margin-top:var(--spacing-sm);">⏱️ Class Timings</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Start Time</strong>${fmtTime12h(student.classStartTime)}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">End Time</strong>${fmtTime12h(student.classEndTime)}</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Total Class Days</strong>${student.totalClassDays || 30}</div>
+                <div class="student-info-item" style="grid-column:1/-1;"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Working Days</strong>${daysHtml}</div>
 
-                <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); margin-top: var(--spacing-sm); border-bottom: 1px solid var(--border-card); padding-bottom: 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">💰 Fee Details</div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Fee Amount</strong><span>₹${student.feeAmount || 0}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Fee Paid For Month</strong><span style="font-weight: 600; color: #10b981;">${student.feePaidForMonth || 'N/A'}</span></div>
-                <div class="student-info-item"><strong style="color:var(--text-secondary); display:block; font-size:0.75rem; margin-bottom: 2px;">Last Fee Paid Date</strong><span>${student.lastFeePaidDate || 'N/A'}</span></div>
+                <div style="grid-column:1/-1;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border-card);padding-bottom:4px;font-size:0.95rem;margin-top:var(--spacing-sm);">💰 Fee Details</div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Fee Amount</strong><span style="font-weight:700;font-size:1.05rem;">₹${student.feeAmount || 0}</span></div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Fee Paid For Month</strong><span style="font-weight:600;color:#10b981;">${escapeHtml(student.feePaidForMonth || 'N/A')}</span></div>
+                <div class="student-info-item"><strong style="color:var(--text-secondary);display:block;font-size:0.75rem;margin-bottom:2px;">Last Fee Paid Date</strong>${escapeHtml(student.lastFeePaidDate || 'N/A')}</div>
             `;
-            
             document.getElementById('viewStudentModal').style.display = 'flex';
         }
 
