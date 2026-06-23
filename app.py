@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 from flask_cors import CORS
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import re
@@ -47,6 +47,51 @@ db = None
 staff_collection = None
 attendance_collection = None
 
+# Caching & dynamic collections initialization
+initialized_student_collections = set()
+stats_cache = {}
+CACHE_TTL = timedelta(seconds=45)
+
+def get_students_collection(staff_id):
+    global initialized_student_collections
+    col_name = f"staff_students_{staff_id}"
+    col = db[col_name]
+    if col_name not in initialized_student_collections:
+        try:
+            col.create_index('id', unique=True)
+            col.create_index('phone')
+            initialized_student_collections.add(col_name)
+            print(f"Initialized indexes on collection: {col_name}")
+        except Exception as e:
+            print(f"Error creating indexes on {col_name}: {e}")
+    return col
+
+def get_cached_stats(cache_key, compute_func):
+    now = datetime.now()
+    if cache_key in stats_cache:
+        entry = stats_cache[cache_key]
+        if now < entry['expires_at']:
+            print(f"CACHE HIT: Returning cached stats for {cache_key}")
+            return entry['data']
+    
+    print(f"CACHE MISS: Computing stats for {cache_key}")
+    data = compute_func()
+    stats_cache[cache_key] = {
+        'expires_at': now + CACHE_TTL,
+        'data': data
+    }
+    return data
+
+def invalidate_stats_cache(staff_id=None):
+    global stats_cache
+    if staff_id:
+        stats_cache.pop(staff_id, None)
+        stats_cache.pop('admin', None)
+        print(f"CACHE INVALIDATED for staff: {staff_id} (and admin)")
+    else:
+        stats_cache.clear()
+        print("CACHE INVALIDATED (all)")
+
 def init_db():
     global client, db, staff_collection, attendance_collection
     try:
@@ -60,7 +105,7 @@ def init_db():
                 client = None
         
         print("Connecting to MongoDB Atlas...")
-        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, maxPoolSize=50, minPoolSize=10)
         client.admin.command('ping')
         print("Connected to MongoDB Atlas successfully!")
         
@@ -70,30 +115,29 @@ def init_db():
         staff_collection = db['staff_accounts']
         attendance_collection = db['attendance']
         
-        # Create indexes
-        staff_collection.create_index('username', unique=True)
-        staff_collection.create_index('staffId', unique=True)
+        # Create indexes safely
+        def safe_create_index(collection, keys, **kwargs):
+            try:
+                collection.create_index(keys, **kwargs)
+            except Exception as e:
+                print(f"Warning: could not create index {keys} on {collection.name}: {e}")
+                
+        safe_create_index(staff_collection, 'username', unique=True)
+        safe_create_index(staff_collection, 'staffId', unique=True)
         
-        # Create collections if they don't exist
-        existing_collections = db.list_collection_names()
-        if 'staff_self_attendance' not in existing_collections:
-            db.create_collection('staff_self_attendance')
+        safe_create_index(attendance_collection, [('staffId', 1), ('date', 1)])
+        safe_create_index(attendance_collection, 'id', unique=True)
+        safe_create_index(attendance_collection, 'studentId')
         
-        if 'ended_students' not in existing_collections:
-            db.create_collection('ended_students')
-            
-        if 'login_logs' not in existing_collections:
-            db.create_collection('login_logs')
-
-        if 'no_class_audit_logs' not in existing_collections:
-            db.create_collection('no_class_audit_logs')
-
-        if 'custom_class_slots' not in existing_collections:
-            db.create_collection('custom_class_slots')
-            db['custom_class_slots'].create_index([('studentId', 1), ('date', 1)])
-            db['custom_class_slots'].create_index('id')
+        safe_create_index(db['ended_students'], [('staffId', 1), ('id', 1)])
+        safe_create_index(db['staff_self_attendance'], [('staffId', 1), ('date', 1)], unique=True)
         
-        print("All collections and indexes ready")
+        safe_create_index(db['custom_class_slots'], [('studentId', 1), ('date', 1)])
+        safe_create_index(db['custom_class_slots'], 'id')
+        
+        safe_create_index(db['no_class_audit_logs'], 'timestamp')
+        
+        print("All collections and indexes ready (without listing collections)")
         return True
         
     except Exception as e:
@@ -392,9 +436,11 @@ def manage_staff():
         
         result = staff_collection.insert_one(new_staff)
         
-        collection_name = f"staff_students_{new_staff['staffId']}"
-        if collection_name not in db.list_collection_names():
-            db.create_collection(collection_name)
+        # Ensure collection index is initialized
+        get_students_collection(new_staff['staffId'])
+        
+        # Invalidate stats cache
+        invalidate_stats_cache()
         
         return jsonify({
             'message': 'Staff added successfully',
@@ -443,19 +489,20 @@ def staff_actions(staff_id):
                 'endTime': end_time
             }}
         )
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Staff updated successfully'})
         
     if request.method == 'DELETE':
         staff = staff_collection.find_one({'staffId': staff_id})
         if staff:
             collection_name = f"staff_students_{staff_id}"
-            if collection_name in db.list_collection_names():
-                db.drop_collection(collection_name)
+            initialized_student_collections.discard(collection_name)
+            db.drop_collection(collection_name)
             
-            if 'staff_self_attendance' in db.list_collection_names():
-                db['staff_self_attendance'].delete_many({'staffId': str(staff['_id'])})
+            db['staff_self_attendance'].delete_many({'staffId': str(staff['_id'])})
             
             staff_collection.delete_one({'staffId': staff_id})
+            invalidate_stats_cache(staff_id)
             return jsonify({'message': 'Staff deleted successfully'})
         
         return jsonify({'error': 'Staff not found'}), 404
@@ -492,7 +539,7 @@ def manage_students():
         collection_name = f"staff_students_{staff_id}"
     
     # Get or create the collection
-    students_col = db[collection_name] if collection_name in db.list_collection_names() else db.create_collection(collection_name)
+    students_col = get_students_collection(collection_name[len("staff_students_"):])
     
     if request.method == 'POST':
         data = request.json
@@ -537,6 +584,9 @@ def manage_students():
                 {'$push': {'students': student['id']}}
             )
         
+        # Invalidate stats cache
+        invalidate_stats_cache(target_staff_id if user_type == 'admin' and target_staff_id else staff_id)
+        
         return jsonify({'message': 'Student added successfully', 'student': serialize_doc(student)}), 201
     
     # GET - Fetch all active students for this staff (excluding ended ones)
@@ -560,11 +610,7 @@ def end_student(student_id):
     data = request.json
     reason = data.get('reason', 'Course Completed')
     
-    collection_name = f"staff_students_{staff_id}"
-    if collection_name not in db.list_collection_names():
-        return jsonify({'error': 'No students found'}), 404
-    
-    students_col = db[collection_name]
+    students_col = get_students_collection(staff_id)
     ended_students_col = db['ended_students']
     
     # Find the student
@@ -590,6 +636,9 @@ def end_student(student_id):
         {'_id': ObjectId(staff_id)},
         {'$pull': {'students': student_id}}
     )
+    
+    # Invalidate stats cache
+    invalidate_stats_cache(staff_id)
     
     return jsonify({'message': 'Student ended successfully', 'student': serialize_doc(student)})
 
@@ -635,7 +684,7 @@ def restore_student(student_id):
     student.pop('endedBy', None)
     
     # Add back to active students
-    students_col = db[collection_name]
+    students_col = get_students_collection(staff_id)
     students_col.insert_one(student)
     
     # Remove from ended collection
@@ -646,6 +695,9 @@ def restore_student(student_id):
         {'_id': ObjectId(staff_id)},
         {'$push': {'students': student_id}}
     )
+    
+    # Invalidate stats cache
+    invalidate_stats_cache(staff_id)
     
     return jsonify({'message': 'Student restored successfully'})
 
@@ -671,19 +723,18 @@ def student_actions(student_id):
             return jsonify({'error': 'Staff ID required'}), 400
         collection_name = f"staff_students_{target_staff_id}"
     
-    if collection_name not in db.list_collection_names():
-        return jsonify({'error': 'No students found'}), 404
-    
-    students_col = db[collection_name]
+    students_col = get_students_collection(target_staff_id)
     
     if request.method == 'PUT':
         data = request.json
         update_data = {k: v for k, v in data.items() if v is not None and k != 'id'}
         students_col.update_one({'id': student_id}, {'$set': update_data})
+        invalidate_stats_cache(target_staff_id)
         return jsonify({'message': 'Student updated'})
     
     if request.method == 'DELETE':
-        attendance_collection.delete_many({'studentId': student_id, 'staffId': staff_id})
+        # Since staffId in attendance is the actual staff owner's id, we use target_staff_id
+        attendance_collection.delete_many({'studentId': student_id, 'staffId': target_staff_id})
         students_col.delete_one({'id': student_id})
         
         if user_type == 'staff':
@@ -692,6 +743,7 @@ def student_actions(student_id):
                 {'$pull': {'students': student_id}}
             )
         
+        invalidate_stats_cache(target_staff_id)
         return jsonify({'message': 'Student deleted'})
 
 # ==================================================
@@ -713,32 +765,13 @@ def manage_attendance():
         records = data.get('attendance', [])
         date = data.get('date', datetime.now().strftime('%Y-%m-%d'))
         
+        operations = []
         saved_records = []
         for record in records:
             status = record.get('status', 'Present')
             if status not in ['Present', 'Absent', 'No Class']:
                 continue
             rec_date = record.get('date') or date
-            attendance_record = {
-                'id': str(uuid.uuid4())[:8],
-                'studentId': record.get('studentId'),
-                'studentName': record.get('studentName'),
-                'class': record.get('class', ''),
-                'branch': record.get('branch', ''),
-                'staffId': staff_id,
-                'staffName': staff_name,
-                'status': record.get('status', 'Present'),
-                'date': rec_date,
-                'inTime': record.get('inTime', '09:00'),
-                'outTime': record.get('outTime', '17:00'),
-                'startTime': record.get('startTime'),
-                'endTime': record.get('endTime'),
-                'subject': record.get('subject'),
-                'remarks': record.get('remarks', ''),
-                'reason': record.get('reason', ''),
-                'type': record.get('type', ''),
-                'createdAt': datetime.now()
-            }
             
             query = {
                 'studentId': record.get('studentId'),
@@ -749,19 +782,49 @@ def manage_attendance():
                 query['startTime'] = record.get('startTime')
             if record.get('endTime'):
                 query['endTime'] = record.get('endTime')
+                
+            new_id = str(uuid.uuid4())[:8]
+            saved_records.append(new_id)
             
-            existing = attendance_collection.find_one(query)
+            set_on_insert = {
+                'id': new_id,
+                'studentId': record.get('studentId'),
+                'date': rec_date,
+                'staffId': staff_id,
+                'createdAt': datetime.now()
+            }
+            if record.get('startTime'):
+                set_on_insert['startTime'] = record.get('startTime')
+            if record.get('endTime'):
+                set_on_insert['endTime'] = record.get('endTime')
+                
+            set_fields = {
+                'studentName': record.get('studentName'),
+                'class': record.get('class', ''),
+                'branch': record.get('branch', ''),
+                'staffName': staff_name,
+                'status': record.get('status', 'Present'),
+                'inTime': record.get('inTime', '09:00'),
+                'outTime': record.get('outTime', '17:00'),
+                'subject': record.get('subject'),
+                'remarks': record.get('remarks', ''),
+                'reason': record.get('reason', ''),
+                'type': record.get('type', '')
+            }
             
-            if existing:
-                attendance_collection.update_one(
-                    {'_id': existing['_id']},
-                    {'$set': attendance_record}
-                )
-            else:
-                attendance_collection.insert_one(attendance_record)
+            operations.append(UpdateOne(
+                query,
+                {
+                    '$setOnInsert': set_on_insert,
+                    '$set': set_fields
+                },
+                upsert=True
+            ))
             
-            saved_records.append(attendance_record['id'])
-        
+        if operations:
+            attendance_collection.bulk_write(operations)
+            
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Attendance saved', 'records': saved_records}), 201
     
     if request.method == 'GET':
@@ -779,6 +842,7 @@ def manage_attendance():
             return jsonify({'error': 'Record ID required'}), 400
         
         attendance_collection.delete_one({'id': record_id, 'staffId': staff_id})
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Attendance deleted'})
 
 def parse_time_to_minutes(time_str):
@@ -817,16 +881,14 @@ def save_no_class():
             return jsonify({'error': 'Invalid time range: end time must be greater than start time'}), 400
             
     # Load all active students for this staff
-    collection_name = f"staff_students_{staff_id}"
-    if collection_name not in db.list_collection_names():
-        return jsonify({'error': 'No student roster found'}), 404
-        
-    students_col = db[collection_name]
+    students_col = get_students_collection(staff_id)
     query = {'isEnded': {'$ne': True}}
     if class_filter != 'All Classes':
         query['class'] = class_filter
         
     active_students = list(students_col.find(query))
+    if not active_students:
+        return jsonify({'error': 'No student roster found'}), 404
     
     affected_students = []
     previous_states = []
@@ -942,7 +1004,9 @@ def save_no_class():
             'timestamp': datetime.now()
         }
         db['no_class_audit_logs'].insert_one(audit_log)
-        
+    # Invalidate stats cache
+    invalidate_stats_cache(staff_id)
+    
     return jsonify({
         'message': 'No Class attendance saved successfully',
         'recordsCount': len(saved_records),
@@ -1012,6 +1076,8 @@ def undo_no_class():
         {'_id': latest_log['_id']},
         {'$set': {'undone': True}}
     )
+    # Invalidate stats cache
+    invalidate_stats_cache(staff_id)
     
     return jsonify({
         'message': 'Last No Class action undone successfully',
@@ -1048,6 +1114,7 @@ def delete_attendance_record(record_id):
     # 1. Try to delete from attendance
     result = attendance_collection.delete_one({'id': record_id, 'staffId': staff_id})
     if result.deleted_count > 0:
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Attendance record deleted'})
         
     # 2. Try to soft-delete in custom_class_slots
@@ -1061,6 +1128,7 @@ def delete_attendance_record(record_id):
                 'deletedAt': datetime.now()
             }}
         )
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Custom class slot soft deleted'})
         
     return jsonify({'error': 'Record not found'}), 404
@@ -1077,8 +1145,7 @@ def manage_custom_class_slots():
     
     if request.method == 'GET':
         # Load active students for this staff
-        collection_name = f"staff_students_{staff_id}"
-        students_col = db[collection_name]
+        students_col = get_students_collection(staff_id)
         active_students = list(students_col.find({'isEnded': {'$ne': True}}))
         active_student_ids = [s['id'] for s in active_students]
         
@@ -1100,8 +1167,7 @@ def manage_custom_class_slots():
             return jsonify({'error': 'Missing required fields'}), 400
             
         # Load student
-        collection_name = f"staff_students_{staff_id}"
-        students_col = db[collection_name]
+        students_col = get_students_collection(staff_id)
         student = students_col.find_one({'id': student_id})
         if not student:
             return jsonify({'error': 'Student not found'}), 404
@@ -1152,6 +1218,7 @@ def manage_custom_class_slots():
             'createdBy': staff_id
         }
         custom_col.insert_one(new_slot)
+        invalidate_stats_cache(staff_id)
         return jsonify({'message': 'Custom class slot saved successfully', 'slot': serialize_doc(new_slot)}), 201
 
 # ==================================================
@@ -1169,33 +1236,89 @@ def get_stats():
     user_type = session.get('user_type')
     
     if user_type == 'admin':
-        total_staff = staff_collection.count_documents({}) if staff_collection else 0
-        return jsonify({
-            'totalStaff': total_staff,
-            'user_type': 'admin'
-        })
+        def compute_admin_stats():
+            total_staff = staff_collection.count_documents({}) if staff_collection else 0
+            
+            global_total_students = 0
+            global_total_ended = 0
+            global_total_pending_fees = 0
+            global_fee_completed_count = 0
+            
+            all_staff = list(staff_collection.find())
+            for s in all_staff:
+                s_id = s.get('staffId')
+                if s_id:
+                    students_col = get_students_collection(s_id)
+                    try:
+                        active = list(students_col.find({'isEnded': {'$ne': True}}))
+                        global_total_students += len(active)
+                        for stud in active:
+                            fee_amount = stud.get('feeAmount', 0)
+                            fee_paid = stud.get('feePaidAmount', 0)
+                            remaining = fee_amount - fee_paid
+                            if remaining > 0:
+                                global_total_pending_fees += remaining
+                            else:
+                                global_fee_completed_count += 1
+                    except Exception:
+                        pass
+            
+            global_total_ended = db['ended_students'].count_documents({})
+            
+            today = datetime.now().strftime('%Y-%m-%d')
+            today_records = attendance_collection.count_documents({'date': today})
+            present_today = attendance_collection.count_documents({'date': today, 'status': 'Present'})
+            
+            return {
+                'totalStaff': total_staff,
+                'totalStudents': global_total_students,
+                'totalEnded': global_total_ended,
+                'todayTotal': today_records,
+                'todayPresent': present_today,
+                'totalPendingFees': global_total_pending_fees,
+                'feeCompletedCount': global_fee_completed_count,
+                'user_type': 'admin'
+            }
+            
+        data = get_cached_stats('admin', compute_admin_stats)
+        return jsonify(data)
+        
     else:
-        collection_name = f"staff_students_{staff_id}"
-        if collection_name in db.list_collection_names():
-            students_col = db[collection_name]
-            total_students = students_col.count_documents({'isEnded': {'$ne': True}})
-        else:
-            total_students = 0
-        
-        ended_students_col = db['ended_students']
-        total_ended = ended_students_col.count_documents({'staffId': staff_id})
-        
-        today = datetime.now().strftime('%Y-%m-%d')
-        today_records = attendance_collection.count_documents({'staffId': staff_id, 'date': today})
-        present_today = attendance_collection.count_documents({'staffId': staff_id, 'date': today, 'status': 'Present'})
-        
-        return jsonify({
-            'totalStudents': total_students,
-            'totalEnded': total_ended,
-            'todayTotal': today_records,
-            'todayPresent': present_today,
-            'user_type': 'staff'
-        })
+        def compute_staff_stats():
+            students_col = get_students_collection(staff_id)
+            active_students = list(students_col.find({'isEnded': {'$ne': True}}))
+            total_students = len(active_students)
+            
+            total_pending_fees = 0
+            fee_completed_count = 0
+            for stud in active_students:
+                fee_amount = stud.get('feeAmount', 0)
+                fee_paid = stud.get('feePaidAmount', 0)
+                remaining = fee_amount - fee_paid
+                if remaining > 0:
+                    total_pending_fees += remaining
+                else:
+                    fee_completed_count += 1
+                    
+            ended_students_col = db['ended_students']
+            total_ended = ended_students_col.count_documents({'staffId': staff_id})
+            
+            today = datetime.now().strftime('%Y-%m-%d')
+            today_records = attendance_collection.count_documents({'staffId': staff_id, 'date': today})
+            present_today = attendance_collection.count_documents({'staffId': staff_id, 'date': today, 'status': 'Present'})
+            
+            return {
+                'totalStudents': total_students,
+                'totalEnded': total_ended,
+                'todayTotal': today_records,
+                'todayPresent': present_today,
+                'totalPendingFees': total_pending_fees,
+                'feeCompletedCount': fee_completed_count,
+                'user_type': 'staff'
+            }
+            
+        data = get_cached_stats(staff_id, compute_staff_stats)
+        return jsonify(data)
 
 # ==================================================
 # ADMIN STUDENTS BY SUBJECT
