@@ -1565,8 +1565,18 @@ def get_calendar_attendance():
                     })
                     logged_map.pop(key)
                 else:
-                    # No attendance record exists. Check if date is future or today
-                    if curr_date_str >= today_str:
+                    # No attendance record exists. Check if date is after student's creation date
+                    created_at = student.get('createdAt')
+                    should_append = True
+                    if created_at:
+                        if isinstance(created_at, datetime):
+                            created_date_str = created_at.strftime('%Y-%m-%d')
+                        else:
+                            created_date_str = str(created_at)[:10]
+                        if curr_date_str < created_date_str:
+                            should_append = False
+                    
+                    if should_append:
                         calendar_events.append({
                             'id': f"upcoming_{student['id']}_{curr_date_str}_{s_time}",
                             'studentId': student['id'],
@@ -1577,7 +1587,7 @@ def get_calendar_attendance():
                             'status': 'Upcoming Class',
                             'class': student.get('class', ''),
                             'subject': subject,
-                            'remarks': 'Upcoming Scheduled Class',
+                            'remarks': 'Upcoming Scheduled Class' if curr_date_str >= today_str else 'Unmarked Scheduled Class',
                             'staffName': '',
                             'title': f"{student['name']} ({subject})",
                             'extendedProps': {
@@ -1589,7 +1599,7 @@ def get_calendar_attendance():
                                 'status': 'Upcoming Class',
                                 'class': student.get('class', ''),
                                 'subject': subject,
-                                'remarks': 'Upcoming Scheduled Class',
+                                'remarks': 'Upcoming Scheduled Class' if curr_date_str >= today_str else 'Unmarked Scheduled Class',
                                 'staffName': ''
                             }
                         })

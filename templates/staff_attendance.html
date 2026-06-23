@@ -1567,6 +1567,169 @@
                 flex: none !important;
                 min-width: 0 !important;
             }
+
+            /* Google Calendar style list/agenda view overrides */
+            .fc-list {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 4px !important;
+            }
+            .fc-list-table {
+                border-collapse: separate !important;
+                border-spacing: 0 8px !important;
+                background: transparent !important;
+                width: 100% !important;
+            }
+            .fc-list-day {
+                background: transparent !important;
+            }
+            .fc-list-day-cushion {
+                background: var(--bg-card) !important;
+                border-radius: 8px !important;
+                padding: 8px 12px !important;
+                margin-top: 14px !important;
+                margin-bottom: 2px !important;
+                border: 1px solid var(--border-card) !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            }
+            .fc-list-day-text {
+                font-weight: 700 !important;
+                color: var(--text-primary) !important;
+                font-size: 0.9rem !important;
+            }
+            .fc-list-day-side-text {
+                font-weight: 500 !important;
+                color: var(--text-secondary) !important;
+                font-size: 0.8rem !important;
+            }
+            
+            .fc-list-event {
+                background: var(--surface) !important;
+                border: 1px solid var(--border-card) !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+                transition: transform 0.2s, box-shadow 0.2s !important;
+                margin-bottom: 8px !important;
+                display: flex !important;
+                align-items: center !important;
+                padding: 10px 14px !important;
+                position: relative !important;
+                overflow: hidden !important;
+                cursor: pointer !important;
+            }
+            .fc-list-event:hover {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06) !important;
+                background: var(--bg-card) !important;
+            }
+            
+            .fc-list-event,
+            .fc-list-event *,
+            .fc-list-event .fc-list-event-time,
+            .fc-list-event .fc-list-event-title {
+                color: var(--text-primary) !important;
+                text-shadow: none !important;
+                background: transparent !important;
+            }
+            
+            .fc-list-event-dot,
+            .fc-list-event-graphic {
+                display: none !important;
+            }
+            
+            .fc-list-event-time {
+                font-size: 0.8rem !important;
+                font-weight: 600 !important;
+                color: var(--text-secondary) !important;
+                width: auto !important;
+                min-width: 75px !important;
+                padding: 0 !important;
+                margin-right: 12px !important;
+                border: none !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+            
+            .fc-list-event-title {
+                flex-grow: 1 !important;
+                padding: 0 !important;
+                border: none !important;
+                font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Left border stripes matching the event colors */
+            .fc-list-event.fc-event-present {
+                border-left: 5px solid #10B981 !important;
+            }
+            .fc-list-event.fc-event-absent {
+                border-left: 5px solid #EF4444 !important;
+            }
+            .fc-list-event.fc-event-noclass {
+                border-left: 5px solid #F59E0B !important;
+            }
+            .fc-list-event.fc-event-upcoming {
+                border-left: 5px solid #3B82F6 !important;
+            }
+
+            /* Custom status badges inside the card */
+            .fc-list-event-custom {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+            .fc-list-event-custom .fc-event-status-badge {
+                font-weight: 700 !important;
+                font-size: 0.7rem !important;
+                padding: 3px 8px !important;
+                border-radius: 6px !important;
+                text-transform: uppercase !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+                flex-shrink: 0 !important;
+            }
+            .fc-list-event.fc-event-present .fc-event-status-badge {
+                background-color: rgba(16, 185, 129, 0.12) !important;
+                color: #10B981 !important;
+                border: 1px solid rgba(16, 185, 129, 0.2) !important;
+            }
+            .fc-list-event.fc-event-absent .fc-event-status-badge {
+                background-color: rgba(239, 68, 68, 0.12) !important;
+                color: #EF4444 !important;
+                border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            }
+            .fc-list-event.fc-event-noclass .fc-event-status-badge {
+                background-color: rgba(245, 158, 11, 0.12) !important;
+                color: #F59E0B !important;
+                border: 1px solid rgba(245, 158, 11, 0.2) !important;
+            }
+            .fc-list-event.fc-event-upcoming .fc-event-status-badge {
+                background-color: rgba(59, 130, 246, 0.12) !important;
+                color: #3B82F6 !important;
+                border: 1px solid rgba(59, 130, 246, 0.2) !important;
+            }
+
+            /* Adjust calendar toolbar size on small screens */
+            .fc .fc-toolbar {
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: center !important;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.15rem !important;
+                text-align: center !important;
+            }
+            .fc .fc-button {
+                padding: 6px 10px !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
         /* Prevent clipping of event content */
         .fc-daygrid-event {
             overflow: visible !important;
@@ -3195,22 +3358,46 @@
         
         function getBestCalendarView() {
             const width = window.innerWidth;
-            if (width < 600) return 'timeGridDay';
+            if (width < 600) return 'listMonth';
             if (width < 900) return 'timeGridWeek';
             return 'dayGridMonth';
         }
         
+        function getBestHeaderToolbar() {
+            const width = window.innerWidth;
+            if (width < 600) {
+                return {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'listMonth,timeGridDay'
+                };
+            } else {
+                return {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                };
+            }
+        }
+        
         let initialView = getBestCalendarView();
+        let initialHeaderToolbar = getBestHeaderToolbar();
         
         let initialHeight = window.innerWidth < 900 ? 'auto' : 600;
         let initialContentHeight = window.innerWidth < 900 ? 550 : 600;
         
         calendarInstance = new FullCalendar.Calendar(calendarEl, {
             initialView: initialView,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            headerToolbar: initialHeaderToolbar,
+            buttonText: {
+                today: 'Today',
+                month: 'Month',
+                week: 'Week',
+                day: 'Day',
+                list: 'Agenda'
+            },
+            views: {
+                listMonth: { buttonText: 'Agenda' }
             },
             themeSystem: 'standard',
             eventTimeFormat: {
@@ -3238,6 +3425,17 @@
                     }
                 } else {
                     timeText = info.timeText || '';
+                }
+                
+                if (info.view.type.startsWith('list')) {
+                    return {
+                        html: `
+                            <div class="fc-list-event-custom" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span class="fc-list-student-name" style="font-weight: 600; font-size: 0.9rem;">${escapeHtml(studentName)}</span>
+                                <span class="fc-event-status-badge" style="font-weight: 700;">${escapeHtml(status || 'Scheduled')}</span>
+                            </div>
+                        `
+                    };
                 }
                 
                 return {
@@ -3321,6 +3519,9 @@
                 if (arg.view.type !== targetView) {
                     calendarInstance.changeView(targetView);
                 }
+                
+                let targetToolbar = getBestHeaderToolbar();
+                calendarInstance.setOption('headerToolbar', targetToolbar);
                 
                 calendarInstance.setOption('height', window.innerWidth < 900 ? 'auto' : 600);
                 calendarInstance.setOption('contentHeight', window.innerWidth < 900 ? 550 : 600);
